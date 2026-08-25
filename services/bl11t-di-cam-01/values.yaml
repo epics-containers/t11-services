@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=../../.helm-shared/values.schema.json
+
+ioc-instance:
+  image: ghcr.io/epics-containers/ioc-adsimdetector-runtime:2.11ec4
+
+  # the areaDetector plugin chain moves 1024x1024 arrays, so the chart's
+  # default 500m / 256Mi limits are too tight
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 256Mi

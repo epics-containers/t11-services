@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=../ioc.schema.json
+
+ioc_name: "{{ _global.get_env('IOC_NAME') }}"
+
+description: Example simulated camera for BL11T
+
+entities:
+  - type: epics.EpicsEnvSet
+    name: EPICS_TZ
+    value: GMT0BST
+
+  - type: devIocStats.iocAdminSoft
+    IOC: "{{ ioc_name | upper }}"
+
+  - type: autosave.Autosave
+    P: "BL11T-DI-CAM-01:"
+
+  - type: ADSimDetector.simDetector
+    PORT: DET.DET
+    P: BL11T-DI-CAM-01
+    R: ":DET:"
+    # DATATYPE:0 = Int8 - TODO add an enum to the support yaml
+    DATATYPE: 0
+    WIDTH: 1024
+    HEIGHT: 1024
+
+  - type: epics.PostStartupCommand
+    command: |
+      dbpf BL11T-DI-CAM-01:DET:AcquireTime 0.1
+      dbpf BL11T-DI-CAM-01:ARR:EnableCallbacks 1
+      dbpf BL11T-DI-CAM-01:PROC:EnableCallbacks 1
+      dbpf BL11T-DI-CAM-01:ROI:EnableCallbacks 1
+      dbpf BL11T-DI-CAM-01:PVA:EnableCallbacks 1
+      dbpf BL11T-DI-CAM-01:DET:Acquire 1
+
+  - type: ADCore.NDROI
+    PORT: DET.ROI
+    P: BL11T-DI-CAM-01
+    R: ":ROI:"
+    NDARRAY_PORT: DET.DET
+
+  - type: ADCore.NDProcess
+    PORT: DET.PROC
+    P: BL11T-DI-CAM-01
+    R: ":PROC:"
+    NDARRAY_PORT: DET.ROI
+
+  - type: ADCore.NDPvxsPlugin
+    PORT: DET.PVA
+    PVNAME: BL11T-DI-CAM-01:PVA:OUTPUT
+    P: BL11T-DI-CAM-01
+    R: ":PVA:"
+    NDARRAY_PORT: DET.DET
+
+  - type: ADCore.NDStdArrays
+    PORT: DET.ARR
+    P: BL11T-DI-CAM-01
+    R: ":ARR:"
+    NDARRAY_PORT: DET.PROC
+    TYPE: Int8
+    NELEMENTS: 1048576
+    FTVL: UCHAR
+
+  - type: ADCore.NDStats
+    PORT: DET.STAT
+    P: BL11T-DI-CAM-01
+    R: ":STAT:"
+    NDARRAY_PORT: DET.DET
+    XSIZE: 1024
+    YSIZE: 1024
+    HIST_SIZE: 20
+
+  - type: ADCore.NDFileHDF5
+    PORT: DET.HDF
+    P: BL11T-DI-CAM-01
+    R: ":HDF5:"
+    NDARRAY_PORT: DET.PROC
+
+  - type: ADCore.NDFileTIFF
+    PORT: DET.TIFF
+    P: BL11T-DI-CAM-01
+    R: ":TIFF:"
+    NDARRAY_PORT: DET.PROC
+
+  - type: ADCore.NDOverlay
+    PORT: DET.OVER
+    P: BL11T-DI-CAM-01
+    R: ":OVER:"
+    NDARRAY_PORT: DET.PROC
+    NOverlays: 4
+
+  - type: ADCore.NDROIStat
+    PORT: DET.ROISTAT
+    P: BL11T-DI-CAM-01
+    R: ":ROISTAT:"
+    NDARRAY_PORT: DET.PROC
+    MAX_ROIS: 4
+
+  - type: ADCore.NDFileNetCDF
+    PORT: DET.CDF
+    P: BL11T-DI-CAM-01
+    R: ":NCDF:"
+    NDARRAY_PORT: DET.DET

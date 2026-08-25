@@ -1,0 +1,79 @@
+# Ported from dev-environment/daq-services `opa`.
+#
+# The compose service runs:
+#   opa build -b /mnt/opa_data -o /tmp/bundle.tar.gz
+#   opa run --server --addr localhost:8181 -b /tmp/bundle.tar.gz --config-file /mnt/config.yaml
+#
+# i.e. a LOCAL data bundle (opa_data/data.json) combined with the published
+# policy bundle from ghcr. That is reproduced here: `data` below becomes a
+# ConfigMap, an initContainer builds it into a bundle, and opa serves it
+# alongside the ghcr policy bundle.
+#
+# Unlike p46-opa this does NOT talk to authz.diamond.ac.uk -- there is no
+# bundler service and no bearer token, so nothing outside the namespace is
+# needed beyond pulling the public policy image from ghcr.
+
+image:
+  repository: docker.io/openpolicyagent/opa
+  # -static-debug matches compose; it carries a shell, which the bundle-build
+  # initContainer needs
+  tag: edge-static-debug
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8181
+
+# the published Diamond policy bundle -- a public OCI artifact, not a service
+policyBundle:
+  resource: ghcr.io/diamondlightsource/authz-policy:0.0.24
+  pollMinDelaySeconds: 30
+  pollMaxDelaySeconds: 120
+
+# Local authorization data, mounted as the `diamond/data` bundle root.
+# Beamline key is `t11` to match dodal's `BL` for the t11 module (compose used
+# `adsim`, which is the BL name of dodal.beamlines.adsim).
+# Users alice/bob and the admin subject match the keycloak bootstrap.
+data:
+  diamond:
+    data:
+      beamlines:
+        t11:
+          sessions: [1, 2]
+      proposals:
+        "12345":
+          sessions:
+            "1": 1
+            "2": 2
+      sessions:
+        "1":
+          beamline: t11
+          proposal_number: 12345
+          visit_number: 1
+        "2":
+          beamline: t11
+          proposal_number: 12345
+          visit_number: 2
+      subjects:
+        admin:
+          permissions: [super_admin]
+          proposals: []
+          sessions: []
+        alice:
+          permissions: []
+          proposals: []
+          sessions: [1]
+        bob:
+          permissions: []
+          proposals: []
+          sessions: [2]
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

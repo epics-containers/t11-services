@@ -1,0 +1,20 @@
+apiVersion: v2
+name: t11-blueapi
+description: blueapi deployed for the t11 standalone DAQ sim
+version: 1.0.0
+
+# When we deploy with the edge-containers-cli we override this on the command line.
+# Direct deployment with Helm will use the default beta value.
+appVersion: 0.0.1b1
+
+type: application
+
+dependencies:
+  - name: blueapi
+    version: "1.19.0"
+    repository: "oci://ghcr.io/diamondlightsource/charts"
+
+  - name: oauth2-proxy
+    alias: oauth2
+    repository: https://oauth2-proxy.github.io/manifests
+    version: 10.7.0

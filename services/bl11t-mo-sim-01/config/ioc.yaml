@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=../ioc.schema.json
+
+ioc_name: "{{ _global.get_env('IOC_NAME') }}"
+
+description: Simulated motion controller with 2 axes for BL11T
+
+entities:
+  - type: epics.EpicsEnvSet
+    name: EPICS_TZ
+    value: GMT0BST
+
+  - type: devIocStats.iocAdminSoft
+    IOC: "{{ ioc_name | upper }}"
+
+  - type: pvlogging.PvLogging
+
+  - type: autosave.Autosave
+    P: "BL11T-MO-SIM-01:"
+
+  - type: motorSim.simMotorController
+    controllerName: sim-controller1
+    numAxes: 3
+    P: "BL11T-MO-SIMC-01:"
+
+  - type: motorSim.simMotorAxis
+    controller: sim-controller1
+    ADDR: 1
+    M: M1
+    DESC: Motor 1
+    home: 1
+
+  - type: motorSim.simMotorAxis
+    controller: sim-controller1
+    ADDR: 2
+    M: M2
+    DESC: Motor 2
+    home: 2

@@ -2,6 +2,52 @@
 
 This repository holds the a definition of t11 IOC Instances and services. Each sub folder of the `services` directory contains a helm chart for a specific service or IOC. The corresponding deployments repo can be found at [https://gitlab.diamond.ac.uk/controls/containers/beamline/t11-deployment].
 
+## Standalone DAQ stack
+
+This repo is a **self-contained simulation**: everything it needs runs inside
+the namespace. Unlike a real beamline it does not use `identity.diamond.ac.uk`,
+the central authz bundler, `numtracker-staging.diamond.ac.uk` or
+`tiled.diamond.ac.uk`.
+
+| service | what it is | ported from |
+|---|---|---|
+| `t11-rabbitmq` | message broker (stomp on 61613) | daq-services `rabbitmq` |
+| `t11-keycloak` | identity provider + realm bootstrap | daq-services `keycloak` |
+| `t11-opa` | Open Policy Agent, local data + published policy bundle | daq-services `opa` |
+| `t11-numtracker` | scan-number service, sqlite on its own PVC | daq-services `numtracker` |
+| `t11-tiled` | data access + its own postgres | daq-services `tiled`, `tiled-postgres` |
+| `t11-blueapi` | bluesky worker + oauth2-proxy | daq-services `blueapi-oauth2-proxy` |
+
+Simulated hardware comes from the IOC instances `bl11t-di-cam-01`,
+`bl11t-ea-test-01` and `bl11t-mo-sim-01`.
+
+### Credentials
+
+Every secret in this stack is a **plain Secret holding a dev value**, not a
+SealedSecret: the sim must deploy without a sealed-secrets controller. Keycloak
+runs `start-dev`, whose H2 database sits on the container filesystem with no
+volume mounted, so a pod restart loses every user and client -- and the
+bootstrap Job does not re-run to repair it (its name is a hash of its
+ConfigMap, so once Complete it stays Complete). Mount a PVC at
+`/opt/keycloak/data` before relying on this beyond a throwaway deploy. Demo users are `alice/alice`
+and `bob/bob`, admin is `admin/admin`. **None of this is fit for production.**
+
+### Known limits
+
+- **Interactive login does not work from outside the cluster.** Keycloak issues
+  tokens for `http://t11-keycloak:8080`, which only resolves inside the
+  namespace. Service-to-service auth works; a browser on a workstation cannot
+  complete the redirect flow. Add an Ingress and set
+  `t11-keycloak.hostname` plus the `redirect` values to that hostname if you
+  need the tiled or blueapi UIs.
+- **`t11-blueapi` needs `dodal.beamlines.t11`**, which does not exist upstream
+  yet. The module is drafted at [`dodal/t11.py`](dodal/t11.py) and must be
+  merged into DiamondLightSource/dodal and released before blueapi will start.
+  Every other service in the stack is independent of it.
+- `t11-opa` pulls its policy bundle from `ghcr.io/diamondlightsource/authz-policy`
+  and `t11-blueapi` clones dodal from GitHub. Both are public artifacts, not
+  Diamond services, but they do mean the cluster needs egress.
+
 ## Using pre-commit hooks
 
 Pre commit hooks will validate the synoptic and additional soft support if present. To install pre-commit hooks run:

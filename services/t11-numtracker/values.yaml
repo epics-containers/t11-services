@@ -1,0 +1,47 @@
+# Ported from dev-environment/daq-services `numtracker`.
+#
+# Fully self-contained: the chart creates its own PVC and numtracker keeps its
+# state in a sqlite file on it. The only outward reference is the OPA instance,
+# which is in this namespace.
+#
+# NOTE the double nesting: everything below `numtracker:` goes to the subchart,
+# and the subchart has its own `numtracker:` block for db/storage/auth. Values
+# put at the wrong level are silently ignored -- in particular auth would fall
+# back to disabled.
+
+numtracker:
+  image:
+    tag: "1.1.0"
+
+  service:
+    type: ClusterIP
+    # compose served on 8406
+    port: 8406
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  numtracker:
+    db:
+      fileName: numtracker.db
+    storage:
+      claimName: t11-numtracker-db-volume
+      mount: /data
+      size: 5M
+
+    # exactly the compose NUMTRACKER_AUTH_* values, repointed at in-cluster OPA
+    auth:
+      enabled: true
+      host: http://t11-opa:8181/
+      access: v1/data/diamond/policy/numtracker/write_to_beamline_visit
+      admin: v1/data/diamond/policy/admin/configure_beamline
+
+    tracing:
+      enabled: false
+    graylog:
+      enabled: false

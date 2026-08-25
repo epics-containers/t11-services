@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+data:
+  config.yaml: |
+    services:
+      ghcr:
+        url: https://ghcr.io
+        type: oci
+    bundles:
+      diamond-policies:
+        service: ghcr
+        resource: {{ .Values.policyBundle.resource }}
+        polling:
+          min_delay_seconds: {{ .Values.policyBundle.pollMinDelaySeconds }}
+          max_delay_seconds: {{ .Values.policyBundle.pollMaxDelaySeconds }}
+  # bundle root manifest -- must match the top-level keys of data.json
+  .manifest: |
+    {
+        "roots": [
+            "diamond/data"
+        ]
+    }
+  data.json: |
+{{ toPrettyJson .Values.data | indent 4 }}

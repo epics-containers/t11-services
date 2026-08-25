@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        # restart when the policy data changes
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      initContainers:
+        # compose does this in its entrypoint; as an initContainer the main
+        # container stays a plain `opa run`, so a bad bundle fails loudly here
+        # rather than crash-looping the server
+        - name: build-bundle
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /opa
+            - build
+            - -b
+            - /mnt/opa_data
+            - -o
+            - /bundle/bundle.tar.gz
+          volumeMounts:
+            - name: opa-data
+              mountPath: /mnt/opa_data
+            - name: bundle
+              mountPath: /bundle
+      containers:
+        - name: opa
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - run
+            - --server
+            # 0.0.0.0, not compose's localhost: other pods must reach it
+            - --addr
+            - 0.0.0.0:{{ .Values.service.port }}
+            - --diagnostic-addr
+            - 0.0.0.0:8282
+            - -b
+            - /bundle/bundle.tar.gz
+            - --config-file
+            - /mnt/config/config.yaml
+            - --log-level=info
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            - name: diagnostic
+              containerPort: 8282
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: diagnostic
+          readinessProbe:
+            httpGet:
+              path: /health?bundle=true
+              port: diagnostic
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: opa-config
+              mountPath: /mnt/config
+            - name: bundle
+              mountPath: /bundle
+      volumes:
+        - name: opa-config
+          configMap:
+            name: {{ .Release.Name }}-config
+            items:
+              - key: config.yaml
+                path: config.yaml
+        - name: opa-data
+          configMap:
+            name: {{ .Release.Name }}-config
+            items:
+              - key: data.json
+                path: data.json
+              - key: .manifest
+                path: .manifest
+        - name: bundle
+          emptyDir: {}

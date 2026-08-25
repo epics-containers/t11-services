@@ -1,0 +1,164 @@
+# blueapi for the standalone t11 sim.
+#
+# Compose does not run blueapi itself (only its oauth2-proxy); this is the
+# services-template-helm blueapi service with every central URL repointed at
+# the in-cluster equivalent:
+#
+#   identity.diamond.ac.uk         -> t11-keycloak
+#   numtracker-staging.diamond...  -> t11-numtracker
+#   tiled.diamond.ac.uk            -> t11-tiled
+#   <instrument>-rabbitmq-daq...   -> t11-rabbitmq
+#
+# !! PREREQUISITE !! `dodal.beamlines.t11` does not exist upstream yet. The
+# module is drafted in this repo at dodal/t11.py -- until it is merged into
+# DiamondLightSource/dodal and released, the worker will fail to import its
+# device source and this service will not start. Every other t11 DAQ service
+# is independent of it.
+
+blueapi:
+  # oauth2-proxy in front, so blueapi itself is not exposed
+  ingress:
+    enabled: false
+
+  extraEnvVars:
+    - name: BEAMLINE
+      value: t11
+    - name: INSTRUMENT
+      value: t11
+    # reach the IOCs through this repo's own gateway service
+    - name: EPICS_PVA_NAME_SERVERS
+      value: t11-epics-gateways:9075
+    - name: EPICS_CA_NAME_SERVERS
+      value: t11-epics-gateways:9064
+    - name: EPICS_PVA_AUTO_ADDR_LIST
+      value: "NO"
+    - name: EPICS_CA_AUTO_ADDR_LIST
+      value: "NO"
+    - name: TILED_WRITER_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: blueapi-secret
+          key: tiled-writer-secret
+
+  worker:
+    env:
+      metadata:
+        instrument: t11
+      sources:
+        - kind: deviceManager
+          module: dodal.beamlines.t11
+        - kind: planFunctions
+          module: dodal.plans
+        - kind: planFunctions
+          module: dodal.plan_stubs
+      events:
+        broadcast_status_events: false
+
+    stomp:
+      auth:
+        username: guest
+        password: guest
+      url: tcp://t11-rabbitmq:61613
+      enabled: true
+
+    logging:
+      level: "INFO"
+      graylog:
+        # no central log server in a standalone sim. NOTE the rendered config
+        # still shows the chart's default graylog-log-target.diamond.ac.uk URL;
+        # with enabled=false nothing connects to it. The only other occurrence
+        # is in the chart's `helm test` ConfigMap, which the stack never runs.
+        enabled: false
+
+    oidc:
+      well_known_url: "http://t11-keycloak:8080/realms/master/.well-known/openid-configuration"
+      client_id: "t11-cli-blueapi"
+      client_audience: "account"
+      logout_redirect_endpoint: "oauth2/sign_out"
+
+    numtracker:
+      url: http://t11-numtracker:8406/graphql
+
+    tiled:
+      enabled: true
+      url: "http://t11-tiled:8000/api/v1/"
+      authentication:
+        client_id: "tiled-writer"
+        client_secret: ${TILED_WRITER_SECRET}
+
+    scratch:
+      root: /workspaces
+      repositories:
+        - name: dodal
+          remote_url: https://github.com/DiamondLightSource/dodal.git
+
+  initContainer:
+    enabled: true
+    persistentVolume:
+      enabled: true
+
+# Lifted from dev-environment/daq-services/services/blueapi-oauth2-proxy/,
+# with the issuer and upstream pointed in-cluster.
+oauth2:
+  fullnameOverride: t11-blueapi-oauth2
+  proxyVarsAsSecrets: false
+  extraEnv:
+    - name: OAUTH2_PROXY_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: blueapi-secret
+          key: client-secret
+    - name: OAUTH2_PROXY_COOKIE_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: blueapi-secret
+          key: cookie-secret
+  config:
+    configFile: |-
+      skip_provider_button = true
+      skip_jwt_bearer_tokens = true
+      cookie_refresh="1m"
+      cookie_expire="30m"
+      cookie_secure = false
+      email_domains = [ "*" ]
+      skip_auth_routes=[
+      "GET=^/config/oidc",
+      "GET=^/healthz"
+      ]
+      whitelist_domains=["t11-keycloak:8080"]
+  ingress:
+    enabled: false
+  alphaConfig:
+    enabled: true
+    configData:
+      upstreamConfig:
+        proxyRawPath: true
+        upstreams:
+          - id: t11-blueapi
+            path: /
+            uri: http://t11-blueapi
+      providers:
+        - provider: oidc
+          id: t11-keycloak
+          clientID: t11-blueapi
+          clientSecret: ${OAUTH2_PROXY_CLIENT_SECRET}
+          oidcConfig:
+            insecureAllowUnverifiedEmail: true
+            insecureSkipNonce: true
+            emailClaim: sub
+            audienceClaims: ["aud"]
+            extraAudiences: ["account"]
+            issuerURL: http://t11-keycloak:8080/realms/master
+      injectRequestHeaders:
+        - name: Authorization
+          values:
+            - claimSource:
+                claim: access_token
+                prefix: "Bearer "
+
+# Dev secret values, matching the keycloak bootstrap in t11-keycloak.
+secrets:
+  clientSecret: blueapi-secret
+  tiledWriterSecret: secret
+  # oauth2-proxy requires exactly 16, 24 or 32 bytes
+  cookieSecret: Dhf3pGspLQ5DjtzIz_la8mq2MkCsXzeV

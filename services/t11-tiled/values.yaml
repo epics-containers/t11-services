@@ -1,0 +1,120 @@
+# Ported from dev-environment/daq-services `tiled` + `tiled-postgres`.
+#
+# Every URL compose pointed at localhost now points at an in-cluster service:
+# nothing here references tiled.diamond.ac.uk, identity.diamond.ac.uk or
+# authz.diamond.ac.uk.
+#
+# Two deliberate differences from compose:
+#  - the stock ghcr.io/bluesky/tiled image is used, not the bespoke
+#    ghcr.io/zohebshaikh/diamond-tiled. The DLS OPA access policy that image
+#    bakes in is instead mounted from templates/configmap-access-policy.yaml,
+#    which is p46-services' proven arrangement.
+#  - `tiled_catalog` is created by the postgres subchart as the user database;
+#    only `tiled_storage` needs the extra init script.
+
+tiled:
+  fullnameOverride: t11-tiled
+  image:
+    tag: 0.2.7
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  extraEnvVars:
+    - name: PYTHONPATH
+      value: /deploy/
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: t11-tiled-postgres
+          key: USER_PASS
+
+  volumeMounts:
+    - name: access-policy
+      mountPath: /deploy/access_policy
+      readOnly: true
+  volumes:
+    - name: access-policy
+      configMap:
+        name: t11-tiled-access-policy
+
+  # rendered into the subchart's own ConfigMap as /deploy/config/config.yaml
+  config:
+    authentication:
+      providers:
+        - provider: keycloak_oidc
+          authenticator: tiled.authenticators:ProxiedOIDCAuthenticator
+          args:
+            audience: account
+            client_id: tiled
+            client_secret: tiled-secret
+            device_flow_client_id: tiled-cli
+            well_known_uri: "http://t11-keycloak:8080/realms/master/.well-known/openid-configuration"
+            confirmation_message: "You have logged in to the t11 sim as {id}."
+            redirect_on_success: "http://t11-tiled:8000/ui/auth-callback"
+            user_id_claim: fedid
+    trees:
+      - path: /
+        tree: catalog
+        args:
+          uri: "postgresql+asyncpg://tiled:${POSTGRES_PASSWORD}@t11-tiled-postgres:5432/tiled_catalog"
+          writable_storage:
+            - "file:///storage"
+            - "postgresql://tiled:${POSTGRES_PASSWORD}@t11-tiled-postgres:5432/tiled_storage"
+          init_if_not_exists: true
+    access_control:
+      access_policy: "access_policy.dls:DiamondOpenPolicyAgentAuthorizationPolicy"
+      args:
+        authorization_provider: "http://t11-opa:8181/v1/data/diamond/policy/"
+        token_audience: account
+        empty_access_blob_public: true
+
+postgres:
+  fullnameOverride: t11-tiled-postgres
+  useDeployment: true
+
+  userDatabase:
+    existingSecret: t11-tiled-postgres
+    name:
+      value: tiled_catalog
+    user:
+      value: tiled
+    password:
+      secretKey: USER_PASS
+
+  settings:
+    existingSecret: t11-tiled-postgres
+    superuserPassword:
+      secretKey: ADMIN_PASS
+    authMethod: scram-sha-256
+    initDbArgs: "--auth-local=scram-sha-256 --auth=scram-sha-256"
+
+  # compose's tiled_config/initdb/01-create-databases.sh. The subchart already
+  # creates tiled_catalog as the user database, so only tiled_storage is left.
+  customScripts:
+    02-create-storage-database.sh: |
+      #!/bin/bash
+      set -e
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
+          CREATE DATABASE tiled_storage OWNER tiled;
+      EOSQL
+
+  storage:
+    volumeName: t11-tiled-postgres-data
+    requestedSize: 2Gi
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+# Dev credentials for the standalone sim -- see t11-rabbitmq/templates/secret.yaml
+postgresPasswords:
+  user: tiled_pg
+  admin: tiled_pg_admin

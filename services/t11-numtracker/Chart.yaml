@@ -1,0 +1,11 @@
+apiVersion: v2
+name: t11-numtracker
+description: Numtracker scan-number service for the t11 standalone DAQ sim
+type: application
+version: 1.0.0
+appVersion: 0.0.1b1
+
+dependencies:
+  - name: numtracker
+    version: "1.1.0"
+    repository: "oci://ghcr.io/diamondlightsource/charts"

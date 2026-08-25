@@ -1,0 +1,69 @@
+# Ported from dev-environment/daq-services `keycloak`.
+#
+# This is a hand-rolled chart rather than a third-party one (codecentric,
+# bitnami). Reasons, specific to a standalone sim:
+#  - no external chart repository to reach at deploy time
+#  - compose runs `start-dev`, whose H2 database lives on the container
+#    filesystem; the community
+#    charts are built around a real external database and a production
+#    hostname/TLS setup, which is far more to configure and to get wrong
+#  - the realm bootstrap (users, clients, mappers) is the actual substance
+#    here, and it is a straight lift of the compose `startup.sh`
+#
+# NOT FOR PRODUCTION, and note the restart hazard: the H2 database sits on the
+# container filesystem with no volume mounted, so a pod restart loses every
+# user and client. The bootstrap Job does NOT re-run to repair this -- its name
+# is a hash of its ConfigMap, so once Complete it stays Complete. Mount a PVC at
+# /opt/keycloak/data before relying on this for more than a throwaway deploy.
+# Real beamlines use identity.diamond.ac.uk.
+
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: "26.4"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# Admin credentials for the sim. Dev values on purpose -- see the Secret note
+# in t11-rabbitmq/templates/secret.yaml.
+admin:
+  username: admin
+  password: admin
+
+# The issuer URL keycloak stamps into tokens. It must be resolvable by every
+# consumer. In-cluster that is the service DNS name; a browser outside the
+# cluster cannot resolve it, so interactive login flows need an ingress
+# instead -- see README.
+hostname: http://t11-keycloak:8080
+
+realm: master
+
+# Client ids follow the compose stack (`<prefix>-blueapi`), not the DLS central
+# convention (`<instrument>Blueapi`), because the client JSON and secrets are
+# lifted from compose.
+clientPrefix: t11
+
+# hardcoded `beamline` claim on the tiled-writer service account. Must match
+# the beamline key in t11-opa's data and dodal's `BL` for the t11 module.
+beamlineClaim: t11
+
+# Redirect URIs. In-cluster service DNS by default; override with ingress
+# hostnames if you expose these outside the namespace.
+redirect:
+  blueapi: http://t11-blueapi-oauth2
+  tiled: http://t11-tiled:8000
+
+# Demo users created in the realm, as `username:password`.
+users:
+  - alice:alice
+  - bob:bob
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1536Mi

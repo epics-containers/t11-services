@@ -1,0 +1,58 @@
+# Ported from dev-environment/daq-services `rabbitmq`.
+#
+# Divergences from the DLS beamline template, deliberate for a standalone sim:
+#  - ClusterIP, not LoadBalancer. Nothing outside the namespace needs the
+#    broker, and a LoadBalancer would need an allocated IP from the site pool.
+#  - a plain Secret with a dev erlang cookie, not a SealedSecret. A SealedSecret
+#    depends on the cluster's sealed-secrets controller and a manual sealing
+#    step, which is exactly the external dependency this repo avoids.
+
+rabbitmq:
+  # pin the service name so blueapi can address it as `t11-rabbitmq:61613`
+  fullnameOverride: t11-rabbitmq
+
+  customConfig: |-
+    stomp.default_user = guest
+    stomp.default_pass = guest
+    log.console = true
+    log.console.level = info
+    log.console.use_colors = off
+
+  authentication:
+    user:
+      value: guest
+    password:
+      value: guest
+    existingSecret: rabbitmq-secrets
+    erlangCookie:
+      secretKey: rabbitmq-erlang-cookie
+
+  # compose mounted these via ./services/rabbitmq_plugins; the chart enables
+  # management and prometheus itself, so only the extras are listed here
+  plugins:
+    - rabbitmq_jms_topic_exchange
+    - rabbitmq_stomp
+    - rabbitmq_mqtt
+
+  rbac:
+    create: false
+  serviceAccount:
+    create: false
+
+  service:
+    type: ClusterIP
+    extraPorts:
+      - name: stomp
+        port: 61613
+        targetPort: stomp
+        containerPort: 61613
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1024Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 2000m
+      memory: 1536Mi
+      ephemeral-storage: 2Gi

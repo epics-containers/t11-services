@@ -1,0 +1,205 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-bootstrap
+data:
+  # Lifted from dev-environment/daq-services/services/keycloak_config/startup.sh.
+  # Changes for Kubernetes:
+  #  - SERVER comes from $KC_SERVER (compose ran this inside the keycloak
+  #    container via post_start, so localhost worked; here it is a separate Job)
+  #  - client ids and redirect URIs are templated from values
+  startup.sh: |
+    #!/bin/bash
+    export PATH=$PATH:/opt/keycloak/bin
+
+    export KC_CLI_PASSWORD="${KC_ADMIN_PASSWORD}"
+    SERVER="${KC_SERVER}"
+    GENERAL_TEMPLATE="/tmp/config/mappers-template.json"
+    BEAMLINE_SERVICE_TEMPLATE="/tmp/config/service-account-beamline.json"
+    USER_SERVICE_TEMPLATE="/tmp/config/service-account-user.json"
+    REALM="{{ .Values.realm }}"
+
+    until kcadm.sh config credentials --server $SERVER --realm $REALM \
+        --user "${KC_ADMIN_USERNAME}"; do sleep 3; done
+
+    for type in "Allowed Protocol Mapper Types" "Allowed Client Scopes"; do
+        for id in $(kcadm.sh get components -q name="$type" --fields id --format csv --noquotes); do
+            kcadm.sh delete components/$id
+        done
+    done
+
+    USERS=({{ range .Values.users }}{{ . | quote }} {{ end }})
+
+    for entry in "${USERS[@]}"; do
+        username="${entry%%:*}"
+        password="${entry##*:}"
+        kcadm.sh create users -r "$REALM" -s username="$username" -s enabled=true
+        kcadm.sh set-password -r "$REALM" --username "$username" --new-password "$password"
+        echo "User '$username' created successfully."
+    done
+
+    kcreg.sh config credentials --server $SERVER --realm $REALM --user "${KC_ADMIN_USERNAME}"
+
+    # Args: client_id, audience, type, fedid, extra_flags
+    create_client() {
+        local client_id=$1
+        local aud=$2
+        local type=$3
+        local fedid=$4
+        shift 4
+
+        if kcreg.sh get "$client_id" >/dev/null 2>&1; then
+            echo ">> Skipping $client_id (exists)"
+            return
+        fi
+
+        echo ">> Creating $client_id..."
+        local tmpfile=$(mktemp)
+
+        if [[ "$type" == "BEAMLINE_SERVICE_ACCOUNT" ]]; then
+            cp  $BEAMLINE_SERVICE_TEMPLATE "$tmpfile"
+        elif [[ "$type" == "USER_SERVICE_ACCOUNT" ]]; then
+            sed "s/__AUDIENCE__/$aud/g; s/__CLAIM_VALUE__/$fedid/g" "$USER_SERVICE_TEMPLATE" > "$tmpfile"
+        else
+            sed "s/__AUDIENCE__/$aud/g;" "$GENERAL_TEMPLATE" > "$tmpfile"
+        fi
+
+        kcreg.sh create -x -s clientId="$client_id" -f "$tmpfile" "$@"
+        rm "$tmpfile"
+    }
+
+    P={{ .Values.clientPrefix }}
+
+    create_client "${P}-cli-blueapi" "${P}-blueapi" "" "" \
+        -s standardFlowEnabled=false -s publicClient=true -s 'redirectUris=["/*"]' \
+        -s 'attributes={"frontchannel.logout.session.required":"true","oauth2.device.authorization.grant.enabled":"true","use.refresh.tokens":"true","backchannel.logout.session.required":"true"}'
+
+    create_client "${P}-blueapi" "${P}-blueapi" "" "" \
+        -s standardFlowEnabled=true -s secret="blueapi-secret" \
+        -s rootUrl="{{ .Values.redirect.blueapi }}" \
+        -s 'redirectUris=["{{ .Values.redirect.blueapi }}/*"]' \
+        -s 'attributes={"frontchannel.logout.session.required":"true","use.refresh.tokens":"true"}'
+
+    create_client "tiled" "account" "" "" \
+        -s standardFlowEnabled=true -s secret="tiled-secret" \
+        -s rootUrl="{{ .Values.redirect.tiled }}" \
+        -s 'redirectUris=["{{ .Values.redirect.tiled }}/*"]'
+
+    create_client "tiled-cli" "tiled" "" "" \
+        -s standardFlowEnabled=false -s publicClient=true -s 'redirectUris=["/*"]' \
+        -s 'attributes={"frontchannel.logout.session.required":"true","oauth2.device.authorization.grant.enabled":"true","use.refresh.tokens":"true","backchannel.logout.session.required":"true"}'
+
+    create_client "tiled-writer" "" "BEAMLINE_SERVICE_ACCOUNT" "" \
+        -s secret="secret" -s standardFlowEnabled=false -s serviceAccountsEnabled=true -s 'redirectUris=["/*"]'
+
+    create_client "system-test-blueapi-admin" "${P}-blueapi" "USER_SERVICE_ACCOUNT" "admin" \
+        -s secret="secret" -s standardFlowEnabled=false -s serviceAccountsEnabled=true -s 'redirectUris=["/*"]'
+
+    create_client "system-test-blueapi-alice" "${P}-blueapi" "USER_SERVICE_ACCOUNT" "alice" \
+        -s secret="secret" -s standardFlowEnabled=false -s serviceAccountsEnabled=true -s 'redirectUris=["/*"]'
+
+    create_client "system-test-blueapi-bob" "${P}-blueapi" "USER_SERVICE_ACCOUNT" "bob" \
+        -s secret="secret" -s standardFlowEnabled=false -s serviceAccountsEnabled=true -s 'redirectUris=["/*"]'
+
+    echo "bootstrap complete"
+
+  mappers-template.json: |
+    {
+        "protocolMappers": [
+            {
+                "name": "username",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-usermodel-attribute-mapper",
+                "consentRequired": false,
+                "config": {
+                    "aggregate.attrs": "false",
+                    "introspection.token.claim": "true",
+                    "multivalued": "false",
+                    "userinfo.token.claim": "true",
+                    "user.attribute": "username",
+                    "id.token.claim": "true",
+                    "lightweight.claim": "false",
+                    "access.token.claim": "true",
+                    "claim.name": "fedid",
+                    "jsonType.label": "String"
+                }
+            },
+            {
+                "name": "audience-mapper",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "config": {
+                    "introspection.token.claim": "true",
+                    "access.token.claim": "true",
+                    "id.token.claim": "true",
+                    "included.custom.audience": "__AUDIENCE__"
+                }
+            }
+        ]
+    }
+
+  service-account-beamline.json: |
+    {
+        "protocolMappers": [
+            {
+                "name": "beamline",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-hardcoded-claim-mapper",
+                "consentRequired": false,
+                "config": {
+                    "introspection.token.claim": "true",
+                    "claim.value": "{{ .Values.beamlineClaim }}",
+                    "userinfo.token.claim": "true",
+                    "id.token.claim": "true",
+                    "lightweight.claim": "false",
+                    "access.token.claim": "true",
+                    "claim.name": "beamline",
+                    "jsonType.label": "String",
+                    "access.tokenResponse.claim": "false"
+                }
+            },
+            {
+                "name": "tiled",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                    "id.token.claim": "false",
+                    "lightweight.claim": "false",
+                    "access.token.claim": "true",
+                    "introspection.token.claim": "true",
+                    "included.custom.audience": "tiled-writer"
+                }
+            }
+        ]
+    }
+
+  service-account-user.json: |
+    {
+        "protocolMappers": [
+            {
+                "name": "fedid",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-hardcoded-claim-mapper",
+                "config": {
+                    "introspection.token.claim": "true",
+                    "claim.value": "__CLAIM_VALUE__",
+                    "userinfo.token.claim": "true",
+                    "id.token.claim": "true",
+                    "access.token.claim": "true",
+                    "claim.name": "fedid",
+                    "jsonType.label": "String"
+                }
+            },
+            {
+                "name": "audience-mapper",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "config": {
+                    "introspection.token.claim": "true",
+                    "access.token.claim": "true",
+                    "included.custom.audience": "__AUDIENCE__"
+                }
+            }
+        ]
+    }

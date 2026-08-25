@@ -1,0 +1,17 @@
+apiVersion: v2
+name: t11-tiled
+description: Tiled data-access service for the t11 standalone DAQ sim
+type: application
+version: 1.0.0
+appVersion: 0.0.1b1
+
+dependencies:
+  - name: tiled
+    version: "0.2.2"
+    repository: "oci://ghcr.io/bluesky/charts"
+
+  # compose ran a separate `tiled-postgres` service; in-cluster it is a subchart
+  # so the database lives and dies with this release
+  - name: postgres
+    version: 1.6.1
+    repository: https://groundhog2k.github.io/helm-charts/

@@ -1,0 +1,46 @@
+# Compose ran startup.sh via `post_start` inside the keycloak container. There
+# is no such hook in Kubernetes, so it becomes a Job.
+#
+# The Job name carries a hash of the bootstrap ConfigMap: a Job's `template` is
+# immutable, so a fixed name would fail to upgrade whenever the script changes.
+# Hashing means an edit creates a new Job and an unchanged chart re-applies the
+# same one. The script itself is idempotent (it skips clients that exist).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-bootstrap-{{ include (print $.Template.BasePath "/configmap-bootstrap.yaml") . | sha256sum | trunc 8 }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-bootstrap
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["bash", "/tmp/config/startup.sh"]
+          env:
+            - name: KC_SERVER
+              value: "http://{{ .Release.Name }}:{{ .Values.service.port }}"
+            - name: KC_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-admin
+                  key: username
+            - name: KC_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-admin
+                  key: password
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /tmp/config
+      volumes:
+        - name: bootstrap
+          configMap:
+            name: {{ .Release.Name }}-bootstrap

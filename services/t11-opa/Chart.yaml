@@ -1,0 +1,6 @@
+apiVersion: v2
+name: t11-opa
+description: Open Policy Agent for the t11 standalone DAQ sim
+type: application
+version: 1.0.0
+appVersion: "1.12.2"
