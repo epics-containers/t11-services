@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../../.helm-shared/values.schema.json
+
+ioc-instance:
+  # use a lightweight IOC because epics-base has no ioc.dbd or start.sh
+  image: ghcr.io/epics-containers/ioc-asyn-runtime:4.45ec3
+
+  rebootEveryCommit: true
+
+  volumeMounts:
+    - mountPath: /opis
+      name: opis-volume
+      readOnly: true
+
+  initContainers:
+    - name: generate-synoptic-extras
+      image: astral/uv:python3.13-trixie-slim
+      command:
+        - sh
+        - -c
+      args:
+        - |
+          set -xe
+          apt-get update && apt-get install -y git
+          git --version
+          uv --version
+          git config --global --add safe.directory /data/synoptic-git
+          if ! [ -d /data/synoptic-git ]; then
+            git clone $ARGOCD_SOURCE_REPO /data/synoptic-git
+          fi
+          cd /data/synoptic-git
+          git fetch
+          git checkout $ARGOCD_COMMIT_HASH
+          git submodule update --init
+          rm -rf /epics/opi/*
+          cp -r /data/synoptic-git/synoptic/* /epics/opi
+          cd /opis/bl11t-synoptic
+          uvx --constraints /data/synoptic-git/requirements.txt techui-builder generate-jsonmap index.bob --output /epics/opi
+          uvx --constraints /data/synoptic-git/requirements.txt techui-builder status techui.yaml --output /epics/opi
+
+  # don't use the ioc-instance livenesProbe, preStop which dont exist in fastcs image.
+  livenessExecutable: ""
+  preStopExecutable: ""

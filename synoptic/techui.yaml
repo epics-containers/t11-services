@@ -1,0 +1,11 @@
+beamline:
+  short_dom: "T11"
+  long_dom: "BL11T"
+  desc: "T11 Beamline or Tech Area"
+
+# add components for techUI-builder to build screens for
+components: {}
+
+  # DCAM1:
+  #   desc: GigE camera EXAMPLE
+  #   prefix: BL11T-DI-DCAM-01

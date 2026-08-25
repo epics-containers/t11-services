@@ -1,0 +1,73 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-yaml
+        exclude: ^Charts/|/templates/
+      - id: check-merge-conflict
+      # - id: end-of-file-fixer
+      #
+      # NOTE: any future formatter / whitespace hook MUST exclude the vendored
+      # files in each services/<instance>/runtime-lock.yaml -- they are sha256-
+      # pinned and reformatting them breaks 'ibek pattern check'.
+
+  - repo: local
+    hooks:
+      - id: tech-ui
+        name: generate and validate the synoptic and component screens
+        language: system
+        # only do this if the techui support submodule has been added
+        entry: |
+          bash -c "
+            if [[ -f synoptic/techui-support/techui-support.yaml ]]; then
+              uvx --constraints requirements.txt techui-builder build synoptic/techui.yaml
+            fi"
+        files: ^synoptic/
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      # Regenerate each changed instance's ioc.schema.json (and rewrite its
+      # config/ioc.yaml $schema header). cut|sort -u scopes the run to the changed
+      # instances; --all-files regenerates all. Trailing arg is the $0 placeholder.
+      - id: ibek-ioc-schema
+        name: generate per-instance ioc.schema.json
+        language: system
+        # surface ibek's soft-skip (base schema 404, exit 0) via /dev/tty so it
+        # shows even on a pass; group 2>/dev/null silences the no-tty (CI) case.
+        entry: |
+          bash -c '
+            rc=0
+            for i in $(printf "%s\n" "$@" | cut -d/ -f1-2 | sort -u); do
+              [ -f "${i}/config/ioc.yaml" ] || continue
+              out=$(uvx --python 3.13 --from ibek --constraints requirements.txt ibek pattern schema "${i}" 2>&1) || rc=1
+              printf "%s\n" "${out}"
+              { printf "%s\n" "${out}" | grep -i "skipping schema" > /dev/tty; } 2>/dev/null || true
+            done
+            exit "${rc}"' ibek-ioc-schema
+        files: ^services/[^/]+/(config/ioc\.yaml|ioc\.schema\.json|values\.yaml)$
+        exclude: ^services/\. # skip .ioc_template skeleton
+        pass_filenames: true
+        # single invocation (no parallel file-partitioning) so each instance runs once
+        require_serial: true
+
+      # Check vendored runtime-support against runtime-lock.yaml; a hash mismatch
+      # FAILS (vendored files are DO-NOT-EDIT -- to diverge mark the lock entry
+      # 'DIRTY # <reason>'). Broad trigger so edits to vendored files still fire.
+      - id: ibek-pattern-check
+        name: check vendored runtime-support against runtime-lock.yaml
+        language: system
+        entry: |
+          bash -c '
+            rc=0
+            for i in $(printf "%s\n" "$@" | cut -d/ -f1-2 | sort -u); do
+              [ -f "${i}/runtime-lock.yaml" ] || continue
+              uvx --python 3.13 --from ibek --constraints requirements.txt ibek pattern check "${i}" || rc=1
+            done
+            exit "${rc}"' ibek-pattern-check
+        files: ^services/
+        exclude: ^services/\. # skip .ioc_template skeleton
+        pass_filenames: true
+        # see ibek-ioc-schema: single invocation so each instance is checked once
+        require_serial: true

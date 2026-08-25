@@ -1,0 +1,12 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 5.7.2
+_src_path: https://github.com/epics-containers/services-template-helm
+athena_services: []
+cluster_name: argus
+cluster_namespace: t11-beamline
+description: t11 IOC Instances and Services
+domain: t11
+gateway: true
+git_platform: github.com
+location: bl11t
+logging_url: https://graylog2.diamond.ac.uk/search?rangetype=relative&fields=message%2Csource&width=1489&highlightMessage=&relative=172800&q=pod_name%3A{service_name}*

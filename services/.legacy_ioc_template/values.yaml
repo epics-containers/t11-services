@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=../../.helm-shared/values.schema.json
+
+dev-c7:
+  # prod #######################################################################
+  # To run a dls_sw/prod IOC only set iocVersion. This will launch from:
+  # /dls_sw/prod/$epicsVersion/ioc/$epicsDomain/$iocName/$iocVersion
+  # NOTE: for J branch on the same cluster as I see workingDir below
+  #
+  iocVersion: REPLACE WITH IOC PROD VERSION (eg 2-1)
+  #
+  # work #######################################################################
+  # To run a dls_sw/work IOC set iocPath and optionally override iocName
+  # e.g.
+  # iocPath: /dls_sw/work/R3.14.12.7/support/BL45P-BUILDER/iocs
+  # This will launche from:
+  # $iocPath/$iocName
+  #
+  # iocName: Defaults to ucase of service folder name
+  # setting iocPath overrides use of iocVersion, epicsDomain and epicsVersion
+
+  # arbitrary folder and entrypoint ############################################
+  # e.g.
+  # workingDir: /dls_sw/prod/python3/RHEL7-x86_64/feSequencers/1.1.4/src/iocs
+  # args:
+  #   - stdio-socket --ptty ./fe03i.sh

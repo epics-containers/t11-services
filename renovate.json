@@ -1,0 +1,38 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "groupName": "ec charts",
+      "matchSourceUrls": [
+        "https://github.com/epics-containers/ec-helm-charts"
+      ],
+      "enabled": false,
+      "description": [
+        "These dependencies are updated as part of updating the copier template"
+      ]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": [
+        "Track vendored runtime-support pattern libraries pinned in each",
+        "IOC instance's runtime-lock.yaml so Renovate raises a PR when a new",
+        "library release (git tag) is available.",
+        "NOTE: after a bump CI / the maintainer MUST re-run",
+        "'ibek pattern update' to re-vendor the files and refresh the hashes",
+        "in runtime-lock.yaml (Renovate only edits the version string here)."
+      ],
+      "managerFilePatterns": [
+        "/services/.*/runtime-lock\\.yaml$/"
+      ],
+      "matchStrings": [
+        "version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?\\s*[\\r\\n]+source:\\s*(?:https?://)?(?:github\\.com/)?(?<depName>[^@\\s\"']+/[^@\\s\"']+?)(?:@[^\\s\"']+)?\\s*$"
+      ],
+      "datasourceTemplate": "github-releases"
+    }
+  ]
+}

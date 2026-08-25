@@ -1,0 +1,12 @@
+# A Helm Chart for an IOC instance
+apiVersion: v2
+name: epics-opis
+
+version: 1.0.0
+
+type: application
+
+dependencies:
+  - name: epics-opis
+    version: 5.6.1
+    repository: "oci://ghcr.io/epics-containers/charts"

@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=../../.helm-shared/values.schema.json
+
+ioc-instance:
+  image: REPLACE_WITH_IMAGE_URI
+
+  # mount in the beamline data folder
+  # dataVolume:
+  #   pvc: false
+  #   hostPath: /dls/ixx/data
