@@ -1,5 +1,5 @@
 uv
-urllib3<2.4.0
+urllib3<2.7.1
 Kodman
 ibek==4.6.2
 techui-builder>=0.7.7
