@@ -7,7 +7,7 @@ appVersion: 0.0.1b1
 
 dependencies:
   - name: tiled
-    version: "0.2.2"
+    version: "0.2.17"
     repository: "oci://ghcr.io/bluesky/charts"
 
   # compose ran a separate `tiled-postgres` service; in-cluster it is a subchart
