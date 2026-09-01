@@ -16,9 +16,9 @@ shared: &shared
   # running as ixxdetector account uid,gid gives access to /dls/ixx/data
   securityContext:
     allowPrivilegeEscalation: false
-    # runAsUser: 37988
-    # runAsGroup: 37988
-
+    # k8s-t11-beamline
+    runAsUser: 36261
+    runAsGroup: 36261
 
   # affinity chooses which servers to run on
   # Accelerator must set this for CIAs, Beamlines don't need it
