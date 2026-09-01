@@ -4,5 +4,5 @@ epics-gateways:
 
   # use ixxdetector account for your beamline
   securityContext:
-    runAsUser: REPLACE_WITH_ID
-    runAsGroup: REPLACE_WITH_ID
+    runAsUser: 37134
+    runAsGroup: 500
