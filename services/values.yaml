@@ -11,7 +11,7 @@ global:
 shared: &shared
   # hostNetwork
   # set to true for Channel Access to work outside of the cluster (or use a gateway)
-  # hostNetwork: true
+  hostNetwork: false
 
   # running as ixxdetector account uid,gid gives access to /dls/ixx/data
   securityContext:
