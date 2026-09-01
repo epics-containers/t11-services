@@ -7,3 +7,5 @@ epics-gateways:
     # k8s-t11-beamline
     runAsUser: 36261
     runAsGroup: 36261
+
+  hostNetwork: false
