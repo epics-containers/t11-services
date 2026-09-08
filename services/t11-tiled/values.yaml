@@ -29,6 +29,8 @@ tiled:
         secretKeyRef:
           name: t11-tiled-postgres
           key: USER_PASS
+    - name: TILED_SINGLE_USER_API_KEY
+      value: SECRET
 
   volumeMounts:
     - name: access-policy
