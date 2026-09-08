@@ -15,7 +15,7 @@
 tiled:
   fullnameOverride: t11-tiled
   image:
-    tag: 0.2.7
+    tag: 0.2.18
 
   service:
     type: ClusterIP
@@ -41,9 +41,13 @@ tiled:
 
   # rendered into the subchart's own ConfigMap as /deploy/config/config.yaml
   config:
-    authentication:
-      single_user_api_key: SECRET
-      providers:
+      database:
+        uri: "sqlite:///file:auth.db?mode=memory&cache=shared&uri=true"
+        init_if_not_exists: true
+      authentication:
+        secret_keys:
+          - SECRET
+        providers:
         - provider: keycloak_oidc
           authenticator: tiled.authenticators:ProxiedOIDCAuthenticator
           args:
@@ -55,21 +59,24 @@ tiled:
             confirmation_message: "You have logged in to the t11 sim as {id}."
             redirect_on_success: "http://t11-tiled:8000/ui/auth-callback"
             user_id_claim: fedid
-    trees:
-      - path: /
-        tree: catalog
+            scopes_map:
+              read: ["read:metadata", "read:data"]
+              write: ["write:metadata", "write:data","create:node","register"]
+      trees:
+        - path: /
+          tree: catalog
+          args:
+            # uri: "postgresql+asyncpg://postgres:${POSTGRESQL_PASSWORD}@tiled-staging-postgres:5432/tiled_db"
+            # writable_storage: "postgresql://postgres:${POSTGRESQL_PASSWORD}@tiled-staging-postgres:5432/data"
+            uri:  "sqlite:///file:catalog.db?mode=memory&cache=shared&uri=true"
+            writable_storage: "sqlite:///file:data.db?mode=memory&cache=shared&uri=true"
+            init_if_not_exists: true
+      access_control:
+        access_policy: "access_policy.dls:DiamondOpenPolicyAgentAuthorizationPolicy"
         args:
-          uri: "postgresql+asyncpg://tiled:${POSTGRES_PASSWORD}@t11-tiled-postgres:5432/tiled_catalog"
-          writable_storage:
-            - "file:///storage"
-            - "postgresql://tiled:${POSTGRES_PASSWORD}@t11-tiled-postgres:5432/tiled_storage"
-          init_if_not_exists: true
-    access_control:
-      access_policy: "access_policy.dls:DiamondOpenPolicyAgentAuthorizationPolicy"
-      args:
-        authorization_provider: "http://t11-opa:8181/v1/data/diamond/policy/"
-        token_audience: account
-        empty_access_blob_public: true
+          authorization_provider: "http://t11-opa:8181/v1/data/diamond/policy/"
+          token_audience: account
+          empty_access_blob_public: true
 
 postgres:
   fullnameOverride: t11-tiled-postgres
