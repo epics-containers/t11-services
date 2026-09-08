@@ -31,16 +31,25 @@ spec:
             - /mnt/opa_data
             - -o
             - /bundle/bundle.tar.gz
-            # ConfigMap volumes are mounted via a hidden, timestamped
-            # directory (e.g. ..2026_09_01_12_47_00.398219000) plus symlinks;
-            # without this, `opa build` walks into it and rejects the data
-            # since its path isn't under the manifest root. `.manifest`
-            # itself only has a single leading dot, so it's unaffected.
-            - --ignore
-            - "..*"
           volumeMounts:
+            # Mounted per-key via subPath rather than as a whole directory:
+            # a whole-directory ConfigMap mount is projected through a
+            # hidden, timestamped directory (e.g.
+            # ..2026_09_01_12_47_00.398219000) plus a `..data` symlink, and
+            # `opa build` walks into that and rejects the data since its
+            # path isn't under the manifest root. Excluding it via
+            # `--ignore` avoids that error but also stops `opa build` from
+            # recognising /mnt/opa_data as an existing bundle, so the
+            # `.manifest` root is silently dropped (build emits
+            # `"roots":[""]`, which then collides with the ghcr policy
+            # bundle at startup). subPath mounts bind each key directly as
+            # a plain file, sidestepping both problems.
             - name: opa-data
-              mountPath: /mnt/opa_data
+              mountPath: /mnt/opa_data/data.json
+              subPath: data.json
+            - name: opa-data
+              mountPath: /mnt/opa_data/.manifest
+              subPath: .manifest
             - name: bundle
               mountPath: /bundle
       containers:
