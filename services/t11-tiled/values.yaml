@@ -42,6 +42,7 @@ tiled:
   # rendered into the subchart's own ConfigMap as /deploy/config/config.yaml
   config:
     authentication:
+      single_user_api_key: SECRET
       providers:
         - provider: keycloak_oidc
           authenticator: tiled.authenticators:ProxiedOIDCAuthenticator
