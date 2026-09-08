@@ -31,6 +31,13 @@ spec:
             - /mnt/opa_data
             - -o
             - /bundle/bundle.tar.gz
+            # ConfigMap volumes are mounted via a hidden, timestamped
+            # directory (e.g. ..2026_09_01_12_47_00.398219000) plus symlinks;
+            # without this, `opa build` walks into it and rejects the data
+            # since its path isn't under the manifest root. `.manifest`
+            # itself only has a single leading dot, so it's unaffected.
+            - --ignore
+            - "..*"
           volumeMounts:
             - name: opa-data
               mountPath: /mnt/opa_data
