@@ -22,7 +22,7 @@ blueapi:
 
   extraEnvVars:
     - name: BEAMLINE
-      value: t11
+      value: adsim
     - name: INSTRUMENT
       value: t11
     - name: ADSIM_PREFIX
