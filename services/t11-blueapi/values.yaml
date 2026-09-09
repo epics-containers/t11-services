@@ -25,6 +25,8 @@ blueapi:
       value: t11
     - name: INSTRUMENT
       value: t11
+    - name: ADSIM_PREFIX
+      value: t11
     # reach the IOCs through this repo's own gateway service
     - name: EPICS_PVA_NAME_SERVERS
       value: t11-epics-gateways:9075
@@ -91,6 +93,7 @@ blueapi:
       repositories:
         - name: dodal
           remote_url: https://github.com/DiamondLightSource/dodal.git
+          target_revision: adsim-prefix
 
   initContainer:
     enabled: true
