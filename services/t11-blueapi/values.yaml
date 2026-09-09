@@ -45,10 +45,10 @@ blueapi:
   worker:
     env:
       metadata:
-        instrument: t11
+        instrument: adsim
       sources:
         - kind: deviceManager
-          module: dodal.beamlines.t11
+          module: dodal.beamlines.adsim
         - kind: planFunctions
           module: dodal.plans
         - kind: planFunctions
