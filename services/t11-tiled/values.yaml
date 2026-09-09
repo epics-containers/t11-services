@@ -88,8 +88,10 @@ postgres:
     existingSecret: t11-tiled-postgres
     name:
       value: tiled_catalog
+      secretKey: DB_NAME
     user:
       value: tiled
+      secretKey: DB_USER
     password:
       secretKey: USER_PASS
 
