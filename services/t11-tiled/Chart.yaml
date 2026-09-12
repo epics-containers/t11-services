@@ -13,5 +13,5 @@ dependencies:
   # compose ran a separate `tiled-postgres` service; in-cluster it is a subchart
   # so the database lives and dies with this release
   - name: postgres
-    version: 1.6.1
+    version: 1.6.8
     repository: https://groundhog2k.github.io/helm-charts/
