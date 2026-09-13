@@ -1,7 +1,8 @@
 beamline:
-  short_dom: "T11"
-  long_dom: "BL11T"
+  domain: t11
+  location: bl11t
   desc: "T11 Beamline or Tech Area"
+  url: t11-opis.diamond.ac.uk
 
 # add components for techUI-builder to build screens for
 components: {}
