@@ -6,21 +6,26 @@ ioc-instance:
 
   rebootEveryCommit: true
 
+  volumes:
+    - name: init-home
+      emptyDir: {}
+
   volumeMounts:
     - mountPath: /opis
       name: opis-volume
       readOnly: true
+    - mountPath: /tmp
+      name: init-home
 
   initContainers:
     - name: generate-synoptic-extras
-      image: astral/uv:python3.13-trixie-slim
+      image: ghcr.io/diamondlightsource/ubuntu-devcontainer:resolute-20260811.1
       command:
         - sh
         - -c
       args:
         - |
           set -xe
-          apt-get update && apt-get install -y git
           git --version
           uv --version
           git config --global --add safe.directory /data/synoptic-git
