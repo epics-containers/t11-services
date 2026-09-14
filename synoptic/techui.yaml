@@ -5,8 +5,11 @@ beamline:
   url: t11-opis.diamond.ac.uk
 
 # add components for techUI-builder to build screens for
-components: {}
+components:
+  DCAM1:
+    desc: GigE camera EXAMPLE
+    prefix: BL11T-DI-CAM-01
 
-  # DCAM1:
-  #   desc: GigE camera EXAMPLE
-  #   prefix: BL11T-DI-DCAM-01
+  MOTORSIM1:
+    desc: Simulated motion controller with 2 axes for BL11T
+    prefix: BL11T-MO-SIM-01
