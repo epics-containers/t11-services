@@ -1,12 +1,9 @@
-# A Helm Chart for an IOC instance
+# Local copy of epics-opis 5.6.1 from oci://ghcr.io/epics-containers/charts
+# with added Service networking values (service.type / externalIPs / loadBalancerIP).
+# See https://github.com/epics-containers/ec-helm-charts/issues/117
 apiVersion: v2
 name: epics-opis
 
-version: 1.0.0
+version: 5.6.1-local.1
 
 type: application
-
-dependencies:
-  - name: epics-opis
-    version: 5.6.1
-    repository: "oci://ghcr.io/epics-containers/charts"

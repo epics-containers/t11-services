@@ -1,0 +1,101 @@
+{{- $location := default .Values.global.location .Values.location | required "ERROR - You must supply location or global.location" -}}
+{{- $domain := default .Values.global.domain .Values.domain | required "ERROR - You must supply domain or global.domain" -}}
+{{- $opisClaim := default (print $domain "-opi-claim") .Values.opisClaim -}}
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    location: {{ $location }}
+    domain: {{ $domain }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        location: {{ $location }}
+        domain: {{ $domain }}
+      annotations:
+      {{ if and .Values.global .Values.global.files -}}
+      {{- range $k, $v := .Values.global.files }}
+        {{ $k }}-sha256: {{ $v | sha256sum }}
+      {{- end }}
+      {{- end }}
+    spec:
+      volumes:
+        - name: html-volume
+          persistentVolumeClaim:
+            claimName: {{ $opisClaim }}
+        - name: config-volume
+          configMap:
+            name: {{ .Release.Name }}-nginx-config
+      containers:
+        - name: server
+          image: {{ .Values.image }}
+          resources:
+            requests:
+              memory: 100Mi
+              cpu: 200m
+            limits:
+              memory: 500Mi
+              cpu: 600m
+          ports:
+            - containerPort: 90
+              protocol: TCP
+          volumeMounts:
+            # - mountPath: /opis
+            - mountPath: /usr/share/nginx/html
+              name: html-volume
+            # mount a config file over the default nginx config
+            - mountPath: /etc/nginx/nginx.conf
+              name: config-volume
+              subPath: nginx.conf
+      {{- with .Values.affinity }}
+      affinity:
+{{  toYaml . | indent 8}}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+{{  toYaml . | indent 8}}
+      {{- end }}
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    location: {{ $location }}
+    domain: {{ $domain }}
+  {{- with .Values.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  {{- with .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ . }}
+  {{- end }}
+  {{- with .Values.service.externalIPs }}
+  externalIPs:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443
+  sessionAffinity: None
+  selector:
+    app: {{ .Release.Name }}

@@ -1,0 +1,17 @@
+# use nginx for publishing opi files over http
+image: nginx:1.25.4
+# Short name for this collection of services
+domain:
+# location where these IOCs and services will run
+location:
+
+service:
+  # LoadBalancer, ClusterIP or NodePort
+  type: LoadBalancer
+  # pin a specific address when the LoadBalancer provider supports it
+  loadBalancerIP:
+  # route traffic arriving on these node/external addresses to the service
+  # (works without any LoadBalancer provider, typically with type: ClusterIP)
+  externalIPs: []
+  #  - 192.168.1.100
+  annotations: {}
