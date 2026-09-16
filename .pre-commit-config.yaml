@@ -46,7 +46,9 @@ repos:
               { printf "%s\n" "${out}" | grep -i "skipping schema" > /dev/tty; } 2>/dev/null || true
             done
             exit "${rc}"' ibek-ioc-schema
-        files: ^services/[^/]+/(config/ioc\.yaml|ioc\.schema\.json|values\.yaml)$
+        # config/*.ibek.support.yaml entities are merged into the schema, so a
+        # change to one must regenerate it too
+        files: ^services/[^/]+/(config/ioc\.yaml|config/[^/]+\.ibek\.support\.yaml|ioc\.schema\.json|values\.yaml)$
         exclude: ^services/\. # skip .ioc_template skeleton
         pass_filenames: true
         # single invocation (no parallel file-partitioning) so each instance runs once

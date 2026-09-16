@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=../../.helm-shared/values.schema.json
+
+# A group of IOCs that differ only by environment - one config folder, one
+# image, one set of resources, rendered once per entry in iocs below.
+# For a single IOC use .ioc_template instead.
+
+# settings shared by every IOC in the group
+ioc-instance:
+  image: REPLACE_WITH_IMAGE_URI
+
+  # mount in the beamline data folder
+  # dataVolume:
+  #   pvc: false
+  #   hostPath: /dls/ixx/data
+
+# One entry per IOC. Every entry MUST have a NAME - it is appended to the
+# release name, so a folder called ixx-ea-thing deploys ixx-ea-thing-01 and
+# ixx-ea-thing-02 below, each with its own StatefulSet, ConfigMap and PVC.
+# The remaining keys become extra container environment variables for that
+# IOC alone; read them back in config/ioc.yaml with _global.get_env().
+#
+# NOTE: the variables reach the container in alphabetical order, so do not
+# rely on k8s $(VAR) references between them.
+iocs:
+  - NAME: "01"
+    REPLACE_WITH_VARIABLE: REPLACE_WITH_VALUE
+
+  - NAME: "02"
+    REPLACE_WITH_VARIABLE: REPLACE_WITH_ANOTHER_VALUE

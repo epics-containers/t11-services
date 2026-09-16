@@ -39,10 +39,10 @@ uvx pre-commit run --all-files --show-diff-on-failure
 # Determine diff base (also used later to pick the changed services)
 if [[ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]]; then
     # GitLab MR
-    DIFF_BASE="origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}"
+    DIFF_BASE=$(git merge-base HEAD "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}")
 elif [[ -n "${GITHUB_BASE_REF:-}" ]]; then
     # GitHub PR
-    DIFF_BASE="origin/${GITHUB_BASE_REF}"
+    DIFF_BASE=$(git merge-base HEAD "origin/${GITHUB_BASE_REF}")
 elif git rev-parse HEAD~1 >/dev/null 2>&1; then
     # normal push
     DIFF_BASE="HEAD~1"

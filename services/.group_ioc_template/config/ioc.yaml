@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=../ioc.schema.json
+
+# Runtime config shared by EVERY IOC in this group (config/ is mounted as the
+# K8s ConfigMap). It specialises itself per instance because IOC_NAME differs
+# per instance, and because ioc-group adds that instance's variables from
+# values.yaml to the container environment.
+# Add vendored support: ibek pattern add <library>:<pattern>@<tag> services/<instance>
+ioc_name: "{{ _global.get_env('IOC_NAME') }}"
+
+description: REPLACE_WITH_DESCRIPTION
+
+entities:
+  - type: epics.EpicsEnvSet
+    name: EPICS_TZ
+    value: GMT0BST
+
+  - type: epics.EpicsEnvSet
+    name: STREAM_PROTOCOL_PATH
+    value: /epics/runtime/protocol/
+
+  - type: devIocStats.iocAdminSoft
+    IOC: "{{ ioc_name | upper }}"
+
+  # Derive anything that differs between the IOCs from the environment, e.g.
+  # a PV prefix from the instance name and a setting from values.yaml:
+  #
+  #   - type: REPLACE.WithEntity
+  #     P: "{{ ioc_name | upper }}"
+  #     SOMETHING: "{{ _global.get_env('REPLACE_WITH_VARIABLE') }}"
+
+  # - todo: Add more entities to make a meaningful IOC

@@ -1,0 +1,18 @@
+# A Helm Chart for a group of IOC instances that differ only by environment
+apiVersion: v2
+name: ec-group-service
+version: 1.0.0
+
+type: application
+
+# ioc-group renders the ioc-instance library once per entry in .Values.iocs,
+# so it pulls ioc-instance in for us - do not depend on ioc-instance here too.
+# The packaged ioc-group vendors the ioc-instance it was built against, which
+# is the same source as ioc-instance 5.7.0-beta.2.
+dependencies:
+  - name: ioc-group
+    version: 5.7.0-beta.2
+    repository: "oci://ghcr.io/epics-containers/charts"
+    import-values:
+      - child: ioc-instance
+        parent: ioc-instance

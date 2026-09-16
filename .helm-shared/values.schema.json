@@ -27,6 +27,11 @@
         "epics-pvcs": {
             "type": "object",
             "description": "Shared values for epics-pvcs chart."
+        },
+        "iocs": {
+            "$ref": "https://github.com/epics-containers/ec-helm-charts/releases/download/5.7.0-beta.2/ioc-group.schema.json#/properties/iocs",
+            "type": "array",
+            "description": "Shared values for ioc-group charts. These represent a group of ibek IOCs that differ only by environment"
         }
     },
     "unevaluatedProperties": false
