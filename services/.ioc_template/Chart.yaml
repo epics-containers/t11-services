@@ -1,14 +1,1 @@
-# A Helm Chart for an IOC instance
-apiVersion: v2
-name: ec-service
-version: 1.0.0
-
-type: application
-
-dependencies:
-  - name: ioc-instance
-    version: 5.7.0
-    repository: "oci://ghcr.io/epics-containers/charts"
-    import-values:
-      - child: ioc-instance
-        parent: ioc-instance
+../../.helm-shared/Chart.yaml
