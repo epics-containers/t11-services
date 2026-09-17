@@ -19,7 +19,7 @@ Template paths are relative to `template/` in services-template-helm.
 
 ### Lower resources to fit a 10 CPU namespace quota
 
-- **Commit:** 012d0bc
+- **Commit:** 012d0bc, c51eff4
 - **t11-services:** `services/values.yaml`, `services/t11-blueapi/values.yaml`,
   `services/t11-epics-gateways/values.yaml`, `services/t11-rabbitmq/values.yaml`,
   `services/t11-epics-opis/`, `services/t11-epics-pvcs/values.yaml`,
@@ -41,11 +41,12 @@ largest init container limit and the sum of its container limits. At the
 chart defaults the full beamline needed about 15.7 CPU, so blueapi, rabbitmq,
 tiled and tiled-postgres could not start. The limits are now: IOCs 250m in
 the `shared` anchor (di-cam keeps 1 CPU), blueapi 1 CPU, epics-gateways 500m
-per container, rabbitmq 500m with a 100m init container, epics-opis 100m,
-epics-pvcs 100m and the blueapi oauth2 Deployment 100m. The t11-only services
-are tiled 500m, tiled-postgres 500m, numtracker 200m, opa 200m and the
-keycloak bootstrap Job 200m. The total is 7.7 CPU, which leaves room for
-rollouts.
+per container, rabbitmq 1 CPU and 1Gi with a 100m init container, epics-opis
+100m, epics-pvcs 100m and the blueapi oauth2 Deployment 100m. The t11-only
+services are tiled 500m, tiled-postgres 500m, numtracker 200m, opa 200m and
+the keycloak bootstrap Job 200m. The total is 8.2 CPU, which leaves room for
+rollouts. rabbitmq needs 1 CPU for its startup probe to pass within 5s, and
+1Gi because the chart sets the memory high watermark to 60% of the limit.
 
 Review: a beamline namespace has a larger quota, so the template may want
 these values only as a commented example. epics-opis is a local chart in t11;
