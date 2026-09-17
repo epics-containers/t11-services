@@ -26,14 +26,19 @@ blueapi:
 
   # the chart default of 2 CPU / 4000Mi suits a VS Code server in the Pod. An
   # idle worker uses about 12m / 520Mi. The scratch initContainer copies these
-  # (initResources is unset), and quota counts the larger of the two
+  # (initResources is unset), and quota counts the larger of the two.
+  # The venv emptyDir counts as ephemeral storage. Without a value the DLS
+  # LimitRange default of 1Gi applies and the kubelet evicts the Pod; 2Gi is
+  # the LimitRange maximum
   resources:
     requests:
       cpu: 100m
       memory: 600Mi
+      ephemeral-storage: 200Mi
     limits:
       cpu: 1000m
       memory: 2Gi
+      ephemeral-storage: 2Gi
 
   extraEnvVars:
     - name: BEAMLINE
