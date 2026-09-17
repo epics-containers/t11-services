@@ -8,6 +8,10 @@ location:
 service:
   # LoadBalancer, ClusterIP or NodePort
   type: LoadBalancer
+  # the port the Service exposes (nginx listens on 80 in the Pod); set another
+  # port (e.g. 8080) on clusters where 80 is taken, such as K3s servicelb
+  # with an ingress controller
+  port: 80
   # pin a specific address when the LoadBalancer provider supports it
   loadBalancerIP:
   # route traffic arriving on these node/external addresses to the service
