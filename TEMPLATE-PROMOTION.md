@@ -17,6 +17,23 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Bump ioc-instance and ioc-group to 5.9.0
+
+- **Commit:** 3b9c526
+- **t11-services:** `.helm-shared/Chart.yaml`, `.helm-shared/GroupChart.yaml`,
+  `.helm-shared/values.schema.json`
+- **Template:** `.helm-shared/Chart.yaml`, `.helm-shared/GroupChart.yaml`,
+  `.helm-shared/values.schema.json`
+- **Promote:** candidate
+- **Done:** [ ]
+
+ioc-instance 5.9.0 gives init containers and extra containers the IOC
+`resources` unless an entry sets its own. Entries can now also set
+`volumeMounts`, `env`, `securityContext`, `workingDir` and `imagePullPolicy`.
+Without resources, a DLS LimitRange gives an init container a 1 CPU limit,
+and the quota counts that limit for the whole Pod. The bl11t-synoptic Pod now
+counts 250m. ioc-group moves from 5.7.0-beta.2 to the same release.
+
 ### Lower resources to fit a 10 CPU namespace quota
 
 - **Commit:** 012d0bc, c51eff4, b1ab682
