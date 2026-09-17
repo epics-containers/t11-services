@@ -1,15 +1,37 @@
 beamline:
   domain: t11
   location: bl11t
-  desc: "T11 Beamline or Tech Area"
+  desc: t11 simulation beamline
   url: t11-opis.diamond.ac.uk
 
-# add components for techUI-builder to build screens for
+# Components for techui-builder. Each key matches a symbol widget name in
+# index.bob; `techui-builder build` fills in that widget's link from here.
+#
+# `file` + `macros` link straight to the IOC's own engineering screen, which
+# the IOC publishes to the shared OPI volume as /<ioc-name>/index.bob. IOC is
+# relative to this synoptic's folder (/bl11t-synoptic/), so the links work on
+# any OPI server host and port.
 components:
   DCAM1:
-    desc: GigE camera EXAMPLE
     prefix: BL11T-DI-CAM-01
+    label: Simulated detector
+    file: $(IOC)/index.bob
+    macros:
+      P: BL11T-DI-CAM-01
+      IOC: ../bl11t-di-cam-01
 
   MOTORSIM1:
-    desc: Simulated motion controller with 2 axes for BL11T
     prefix: BL11T-MO-SIM-01
+    label: Simulated motors
+    file: $(IOC)/index.bob
+    macros:
+      P: BL11T-MO-SIMC-01
+      IOC: ../bl11t-mo-sim-01
+
+  EATEST1:
+    prefix: BL11T-EA-TEST-01
+    label: Test IOC
+    file: $(IOC)/index.bob
+    macros:
+      P: BL11T-EA-TEST-01
+      IOC: ../bl11t-ea-test-01

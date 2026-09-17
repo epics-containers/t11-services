@@ -1,18 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--Saved on 2025-11-27 07:29:05 by hgv27681-->
+<?xml version='1.0' encoding='UTF-8'?>
 <display version="2.0.0">
   <name>T11 Synoptic</name>
-  <width>1900</width>
-  <height>1100</height>
+  <width>540</width>
+  <height>290</height>
   <grid_step_x>4</grid_step_x>
   <grid_step_y>4</grid_step_y>
   <widget type="label" version="2.0.0">
     <name>Title</name>
     <class>TITLE</class>
-    <text>T11 Synoptic</text>
+    <text>t11 simulation beamline</text>
     <x use_class="true">0</x>
     <y use_class="true">0</y>
-    <width>1250</width>
+    <width>540</width>
     <height>25</height>
     <font use_class="true">
       <font name="Header 1" family="Liberation Sans" style="BOLD" size="22.0">
@@ -24,5 +23,171 @@
     </foreground_color>
     <transparent use_class="true">true</transparent>
     <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="label" version="2.0.0">
+    <name>Hint</name>
+    <text>Click a device to open its IOC screen</text>
+    <y>32</y>
+    <width>540</width>
+    <horizontal_alignment>1</horizontal_alignment>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Simulated detector</name>
+    <x>16</x>
+    <y>60</y>
+    <width>160</width>
+    <height>210</height>
+    <widget type="symbol" version="2.0.0">
+      <name>DCAM1</name>
+      <pv_name>BL11T-DI-CAM-01:STA</pv_name>
+      <symbols>
+        <symbol>techui-support/symbols/camera.svg</symbol>
+      </symbols>
+      <x>24</x>
+      <y>8</y>
+      <width>100</width>
+      <height>100</height>
+      <actions>
+        <action type="open_display">
+          <description>Simulated detector</description>
+          <file>$(IOC)/index.bob</file>
+          <target>tab</target>
+          <macros>
+            <P>BL11T-DI-CAM-01</P>
+            <IOC>../bl11t-di-cam-01</IOC>
+          </macros>
+        </action>
+      </actions>
+      <run_actions_on_mouse_click>true</run_actions_on_mouse_click>
+      <tooltip>$(actions)</tooltip>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>DCAM1 prefix</name>
+      <text>BL11T-DI-CAM-01</text>
+      <y>116</y>
+      <width>148</width>
+      <horizontal_alignment>1</horizontal_alignment>
+    </widget>
+    <widget type="led" version="2.0.0">
+      <name>DCAM1 heartbeat</name>
+      <pv_name>BL11T-DI-CAM-01:HEARTBEAT</pv_name>
+      <x>32</x>
+      <y>148</y>
+      <tooltip>IOC heartbeat: $(pv_name)</tooltip>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>DCAM1 heartbeat label</name>
+      <text>IOC running</text>
+      <x>60</x>
+      <y>148</y>
+      <width>88</width>
+    </widget>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Simulated motors</name>
+    <x>190</x>
+    <y>60</y>
+    <width>160</width>
+    <height>210</height>
+    <widget type="symbol" version="2.0.0">
+      <name>MOTORSIM1</name>
+      <pv_name>BL11T-MO-SIM-01:STA</pv_name>
+      <symbols>
+        <symbol>techui-support/symbols/translation-stage.svg</symbol>
+      </symbols>
+      <x>24</x>
+      <y>8</y>
+      <width>100</width>
+      <height>100</height>
+      <actions>
+        <action type="open_display">
+          <description>Simulated motors</description>
+          <file>$(IOC)/index.bob</file>
+          <target>tab</target>
+          <macros>
+            <P>BL11T-MO-SIMC-01</P>
+            <IOC>../bl11t-mo-sim-01</IOC>
+          </macros>
+        </action>
+      </actions>
+      <run_actions_on_mouse_click>true</run_actions_on_mouse_click>
+      <tooltip>$(actions)</tooltip>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>MOTORSIM1 prefix</name>
+      <text>BL11T-MO-SIM-01</text>
+      <y>116</y>
+      <width>148</width>
+      <horizontal_alignment>1</horizontal_alignment>
+    </widget>
+    <widget type="led" version="2.0.0">
+      <name>MOTORSIM1 heartbeat</name>
+      <pv_name>BL11T-MO-SIM-01:HEARTBEAT</pv_name>
+      <x>32</x>
+      <y>148</y>
+      <tooltip>IOC heartbeat: $(pv_name)</tooltip>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>MOTORSIM1 heartbeat label</name>
+      <text>IOC running</text>
+      <x>60</x>
+      <y>148</y>
+      <width>88</width>
+    </widget>
+  </widget>
+  <widget type="group" version="2.0.0">
+    <name>Test IOC</name>
+    <x>364</x>
+    <y>60</y>
+    <width>160</width>
+    <height>210</height>
+    <widget type="symbol" version="2.0.0">
+      <name>EATEST1</name>
+      <pv_name>BL11T-EA-TEST-01:STA</pv_name>
+      <symbols>
+        <symbol>techui-support/symbols/oscilloscope.svg</symbol>
+      </symbols>
+      <x>24</x>
+      <y>8</y>
+      <width>100</width>
+      <height>100</height>
+      <actions>
+        <action type="open_display">
+          <description>Test IOC</description>
+          <file>$(IOC)/index.bob</file>
+          <target>tab</target>
+          <macros>
+            <P>BL11T-EA-TEST-01</P>
+            <IOC>../bl11t-ea-test-01</IOC>
+          </macros>
+        </action>
+      </actions>
+      <run_actions_on_mouse_click>true</run_actions_on_mouse_click>
+      <tooltip>$(actions)</tooltip>
+      <border_alarm_sensitive>false</border_alarm_sensitive>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>EATEST1 prefix</name>
+      <text>BL11T-EA-TEST-01</text>
+      <y>116</y>
+      <width>148</width>
+      <horizontal_alignment>1</horizontal_alignment>
+    </widget>
+    <widget type="led" version="2.0.0">
+      <name>EATEST1 heartbeat</name>
+      <pv_name>BL11T-EA-TEST-01:HEARTBEAT</pv_name>
+      <x>32</x>
+      <y>148</y>
+      <tooltip>IOC heartbeat: $(pv_name)</tooltip>
+    </widget>
+    <widget type="label" version="2.0.0">
+      <name>EATEST1 heartbeat label</name>
+      <text>IOC running</text>
+      <x>60</x>
+      <y>148</y>
+      <width>88</width>
+    </widget>
   </widget>
 </display>
