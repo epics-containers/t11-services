@@ -36,7 +36,7 @@ counts 250m. ioc-group moves from 5.7.0-beta.2 to the same release.
 
 ### Lower resources to fit a 10 CPU namespace quota
 
-- **Commit:** 012d0bc, c51eff4, b1ab682
+- **Commit:** 012d0bc, c51eff4, b1ab682, 3496ae1
 - **t11-services:** `services/values.yaml`, `services/t11-blueapi/values.yaml`,
   `services/t11-epics-gateways/values.yaml`, `services/t11-rabbitmq/values.yaml`,
   `services/t11-epics-opis/`, `services/t11-epics-pvcs/values.yaml`,
@@ -61,8 +61,10 @@ the `shared` anchor (di-cam keeps 1 CPU), blueapi 1 CPU, epics-gateways 500m
 per container, rabbitmq 1 CPU and 1Gi with a 100m init container, epics-opis
 100m, epics-pvcs 100m and the blueapi oauth2 Deployment 100m. The t11-only
 services are tiled 500m, tiled-postgres 500m, numtracker 200m, opa 200m and
-the keycloak bootstrap Job 200m. The total is 8.2 CPU, which leaves room for
-rollouts. rabbitmq needs 1 CPU for its startup probe to pass within 5s, and
+the keycloak bootstrap Job 1 CPU while it runs. The total is 8.2 CPU, which
+leaves room for rollouts. The bootstrap Job failed at 200m: each kcadm.sh and
+kcreg.sh call starts a JVM, and the admin token expired before the call used
+it. rabbitmq needs 1 CPU for its startup probe to pass within 5s, and
 1Gi because the chart sets the memory high watermark to 60% of the limit.
 blueapi sets an ephemeral-storage limit of 2Gi, the LimitRange maximum: the
 venv emptyDir exceeded the 1Gi default and the kubelet evicted the Pod.
