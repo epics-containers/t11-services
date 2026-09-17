@@ -19,7 +19,7 @@ Template paths are relative to `template/` in services-template-helm.
 
 ### Lower resources to fit a 10 CPU namespace quota
 
-- **Commit:** 012d0bc, c51eff4
+- **Commit:** 012d0bc, c51eff4, b1ab682
 - **t11-services:** `services/values.yaml`, `services/t11-blueapi/values.yaml`,
   `services/t11-epics-gateways/values.yaml`, `services/t11-rabbitmq/values.yaml`,
   `services/t11-epics-opis/`, `services/t11-epics-pvcs/values.yaml`,
@@ -47,6 +47,8 @@ services are tiled 500m, tiled-postgres 500m, numtracker 200m, opa 200m and
 the keycloak bootstrap Job 200m. The total is 8.2 CPU, which leaves room for
 rollouts. rabbitmq needs 1 CPU for its startup probe to pass within 5s, and
 1Gi because the chart sets the memory high watermark to 60% of the limit.
+blueapi sets an ephemeral-storage limit of 2Gi, the LimitRange maximum: the
+venv emptyDir exceeded the 1Gi default and the kubelet evicted the Pod.
 
 Review: a beamline namespace has a larger quota, so the template may want
 these values only as a commented example. epics-opis is a local chart in t11;
