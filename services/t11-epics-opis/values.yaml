@@ -1,5 +1,5 @@
 # use nginx for publishing opi files over http
-image: nginx:1.25.4
+image: nginx:1.31.6
 # nginx serving static OPI files is nearly idle. The upstream chart hardcodes
 # 600m, which counts against a namespace CPU quota
 resources:
