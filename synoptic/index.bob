@@ -60,7 +60,6 @@
       </actions>
       <run_actions_on_mouse_click>true</run_actions_on_mouse_click>
       <tooltip>$(actions)</tooltip>
-      <border_alarm_sensitive>false</border_alarm_sensitive>
     </widget>
     <widget type="label" version="2.0.0">
       <name>DCAM1 prefix</name>
@@ -113,7 +112,6 @@
       </actions>
       <run_actions_on_mouse_click>true</run_actions_on_mouse_click>
       <tooltip>$(actions)</tooltip>
-      <border_alarm_sensitive>false</border_alarm_sensitive>
     </widget>
     <widget type="label" version="2.0.0">
       <name>MOTORSIM1 prefix</name>
@@ -166,7 +164,6 @@
       </actions>
       <run_actions_on_mouse_click>true</run_actions_on_mouse_click>
       <tooltip>$(actions)</tooltip>
-      <border_alarm_sensitive>false</border_alarm_sensitive>
     </widget>
     <widget type="label" version="2.0.0">
       <name>EATEST1 prefix</name>
