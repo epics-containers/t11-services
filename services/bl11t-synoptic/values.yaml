@@ -6,11 +6,6 @@ ioc-instance:
 
   rebootEveryCommit: true
 
-  # the init container clones the synoptic repo into /data, so keep the
-  # data volume that ioc-instance 5.8.0 no longer adds by default
-  dataVolume:
-    enabled: true
-
   volumes:
     - name: init-home
       emptyDir: {}
@@ -33,19 +28,19 @@ ioc-instance:
           set -xe
           git --version
           uv --version
-          git config --global --add safe.directory /data/synoptic-git
-          if ! [ -d /data/synoptic-git ]; then
-            git clone $ARGOCD_SOURCE_REPO /data/synoptic-git
+          git config --global --add safe.directory /tmp/synoptic-git
+          if ! [ -d /tmp/synoptic-git ]; then
+            git clone $ARGOCD_SOURCE_REPO /tmp/synoptic-git
           fi
-          cd /data/synoptic-git
+          cd /tmp/synoptic-git
           git fetch
           git checkout $ARGOCD_COMMIT_HASH
           git submodule update --init
           rm -rf /epics/opi/*
-          cp -r /data/synoptic-git/synoptic/* /epics/opi
+          cp -r /tmp/synoptic-git/synoptic/* /epics/opi
           cd /opis/bl11t-synoptic
-          uvx --constraints /data/synoptic-git/requirements.txt techui-builder generate-jsonmap index.bob --output /epics/opi
-          uvx --constraints /data/synoptic-git/requirements.txt techui-builder status techui.yaml --output /epics/opi
+          uvx --constraints /tmp/synoptic-git/requirements.txt techui-builder generate-jsonmap index.bob --output /epics/opi
+          uvx --constraints /tmp/synoptic-git/requirements.txt techui-builder status techui.yaml --output /epics/opi
 
   # don't use the ioc-instance livenesProbe, preStop which dont exist in fastcs image.
   livenessExecutable: ""
