@@ -52,6 +52,10 @@ spec:
               subPath: .manifest
             - name: bundle
               mountPath: /bundle
+          # without resources the namespace LimitRange default applies
+          # (1 CPU at DLS), and quota counts the larger of init and main
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       containers:
         - name: opa
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

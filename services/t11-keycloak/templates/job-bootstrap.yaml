@@ -1,14 +1,15 @@
 # Compose ran startup.sh via `post_start` inside the keycloak container. There
 # is no such hook in Kubernetes, so it becomes a Job.
 #
-# The Job name carries a hash of the bootstrap ConfigMap: a Job's `template` is
-# immutable, so a fixed name would fail to upgrade whenever the script changes.
-# Hashing means an edit creates a new Job and an unchanged chart re-applies the
-# same one. The script itself is idempotent (it skips clients that exist).
+# The Job name carries a hash of the bootstrap ConfigMap and resources: a Job's
+# `template` is immutable, so a fixed name would fail to upgrade whenever the
+# script or resources change. Hashing means an edit creates a new Job and an
+# unchanged chart re-applies the same one. The script itself is idempotent (it
+# skips clients that exist).
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ .Release.Name }}-bootstrap-{{ include (print $.Template.BasePath "/configmap-bootstrap.yaml") . | sha256sum | trunc 8 }}
+  name: {{ .Release.Name }}-bootstrap-{{ print (include (print $.Template.BasePath "/configmap-bootstrap.yaml") .) (toYaml .Values.bootstrapResources) | sha256sum | trunc 8 }}
   labels:
     app: {{ .Release.Name }}
 spec:
@@ -37,6 +38,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-admin
                   key: password
+          resources:
+            {{- toYaml .Values.bootstrapResources | nindent 12 }}
           volumeMounts:
             - name: bootstrap
               mountPath: /tmp/config

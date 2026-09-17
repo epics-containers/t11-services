@@ -47,12 +47,24 @@ rabbitmq:
         targetPort: stomp
         containerPort: 61613
 
+  # sized for a sim that carries a handful of messages. The chart derives
+  # RabbitMQ's memory high watermark from limits.memory
   resources:
     requests:
-      cpu: 250m
-      memory: 1024Mi
+      cpu: 100m
+      memory: 256Mi
       ephemeral-storage: 50Mi
     limits:
-      cpu: 2000m
-      memory: 1536Mi
+      cpu: 500m
+      memory: 512Mi
       ephemeral-storage: 2Gi
+
+  # without this the init container takes the namespace LimitRange default
+  # (1 CPU at DLS), and quota counts the larger of init and main container
+  initResources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi

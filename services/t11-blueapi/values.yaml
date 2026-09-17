@@ -24,6 +24,17 @@ blueapi:
   ingress:
     enabled: false
 
+  # the chart default of 2 CPU / 4000Mi suits a VS Code server in the Pod. An
+  # idle worker uses about 12m / 520Mi. The scratch initContainer copies these
+  # (initResources is unset), and quota counts the larger of the two
+  resources:
+    requests:
+      cpu: 100m
+      memory: 600Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
   extraEnvVars:
     - name: BEAMLINE
       value: adsim
@@ -109,6 +120,15 @@ blueapi:
 oauth2:
   fullnameOverride: t11-blueapi-oauth2
   proxyVarsAsSecrets: false
+  # the chart sets no resources, so the namespace LimitRange default (1 CPU at
+  # DLS) would apply and count against the namespace CPU quota
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
   extraEnv:
     - name: OAUTH2_PROXY_CLIENT_SECRET
       valueFrom:

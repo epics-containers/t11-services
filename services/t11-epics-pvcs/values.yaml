@@ -1,0 +1,10 @@
+epics-pvcs:
+  # the PVC access Pod sits idle. Without resources it takes the namespace
+  # LimitRange default (1 CPU at DLS), which counts against the CPU quota
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi

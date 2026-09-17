@@ -13,3 +13,14 @@ epics-gateways:
   # the epics-gateways image is built for amd64 only
   nodeSelector:
     kubernetes.io/arch: amd64
+
+  # applies to both the ca and pva gateway containers. The chart default of
+  # 800m each is far above what the t11 IOCs need and counts against the
+  # namespace CPU quota
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi

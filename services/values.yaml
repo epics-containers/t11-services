@@ -45,6 +45,17 @@ shared: &shared
   nodeSelector:
     kubernetes.io/arch: amd64
 
+  # an idle IOC uses a few millicores. The ioc-instance default limit of 500m
+  # per IOC adds up against a namespace CPU quota, such as the 10 CPU limit of
+  # a DLS personal namespace. IOCs that need more override this, e.g. di-cam
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 25m
+      memory: 64Mi
+
 # shared settings for all ibek IOCs using the ioc-instance helm chart
 ioc-instance:
   <<: *shared

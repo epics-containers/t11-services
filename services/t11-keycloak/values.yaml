@@ -67,3 +67,14 @@ resources:
   limits:
     cpu: 1000m
     memory: 1536Mi
+
+# the bootstrap Job only runs kcadm.sh. Without resources it takes the
+# namespace LimitRange default (1 CPU at DLS), which counts against the quota
+# while it runs
+bootstrapResources:
+  requests:
+    cpu: 20m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi

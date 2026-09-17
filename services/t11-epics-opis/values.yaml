@@ -1,5 +1,14 @@
 # use nginx for publishing opi files over http
 image: nginx:1.25.4
+# nginx serving static OPI files is nearly idle. The upstream chart hardcodes
+# 600m, which counts against a namespace CPU quota
+resources:
+  requests:
+    memory: 16Mi
+    cpu: 10m
+  limits:
+    memory: 64Mi
+    cpu: 100m
 # Short name for this collection of services
 domain:
 # location where these IOCs and services will run

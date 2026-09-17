@@ -1,10 +1,11 @@
 # Local copy of epics-opis 5.6.1 from oci://ghcr.io/epics-containers/charts
 # with added Service networking values (service.type / port / externalIPs /
-# loadBalancerIP) and the unused https (443) Service port removed.
+# loadBalancerIP) and a resources value, and with the unused https (443)
+# Service port removed.
 # See https://github.com/epics-containers/ec-helm-charts/issues/117
 apiVersion: v2
 name: epics-opis
 
-version: 5.6.1-local.2
+version: 5.6.1-local.3
 
 type: application

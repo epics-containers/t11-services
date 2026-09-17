@@ -70,10 +70,12 @@ data:
           proposals: []
           sessions: [2]
 
+# used by both the opa container and the build-bundle initContainer. Requests
+# stay at 1/10 of limits, the largest ratio a DLS namespace LimitRange allows
 resources:
   requests:
-    cpu: 50m
-    memory: 128Mi
+    cpu: 20m
+    memory: 64Mi
   limits:
-    cpu: 500m
+    cpu: 200m
     memory: 512Mi

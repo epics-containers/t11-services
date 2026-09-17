@@ -22,12 +22,14 @@ numtracker:
     # compose served on 8406
     port: 8406
 
+  # idle numtracker uses about 1m CPU. Requests stay at 1/10 of limits, the
+  # largest ratio a DLS namespace LimitRange allows
   resources:
     requests:
-      cpu: 50m
-      memory: 64Mi
+      cpu: 20m
+      memory: 32Mi
     limits:
-      cpu: 500m
+      cpu: 200m
       memory: 256Mi
 
   numtracker:
