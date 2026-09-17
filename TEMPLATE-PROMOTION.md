@@ -17,6 +17,39 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Pin amd64-only images to amd64 nodes
+
+- **Commit:** da0cc76
+- **t11-services:** `services/values.yaml`, `services/t11-blueapi/values.yaml`,
+  `services/t11-numtracker/values.yaml`, `services/t11-epics-gateways/values.yaml`
+- **Template:** `services/values.yaml.jinja`,
+  `services/{% if "blueapi" in athena_services %}{{instrument}}-blueapi{% endif %}/values.yaml.jinja`,
+  `services/{% if gateway %}{{ domain }}-epics-gateways{% endif %}/values.yaml`
+- **Promote:** candidate
+- **Done:** [ ]
+
+The IOC, epics-gateways, blueapi and numtracker images are built for amd64
+only. Each of these services now sets the `kubernetes.io/arch: amd64`
+nodeSelector. For IOCs it is in the `shared` anchor, which both `ioc-instance`
+and `dev-c7` merge. The kubelet sets this label on every node. On a cluster
+where every node is amd64, as at DLS, the nodeSelector changes nothing. On a
+mixed-architecture cluster it keeps these Pods off the other nodes. The
+gateway nodeSelector needs epics-gateways 2026.9.2.
+
+Review: the template has no numtracker service, so the numtracker change stays
+in t11 only.
+
+### Bump epics-gateways to 2026.9.2
+
+- **Commit:** da0cc76
+- **t11-services:** `services/t11-epics-gateways/Chart.yaml`
+- **Template:** `services/{% if gateway %}{{ domain }}-epics-gateways{% endif %}/Chart.yaml`
+- **Promote:** candidate
+- **Done:** [ ]
+
+epics-gateways 2026.9.2 adds a `nodeSelector` value for the gateway Pod. The
+chart and its image tag are the only other changes since 2026.9.1.
+
 ### Clone the synoptic repo into /tmp, not /data
 
 - **Commit:** 0697155
