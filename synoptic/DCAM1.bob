@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <display version="2.0.0">
+    <name>DCAM1</name>
+    <widget type="group" version="2.0.0">
+      <name>Simulated detector</name>
+      <x>0</x>
+      <y>0</y>
+      <width>930</width>
+      <height>590</height>
+      <widget type="embedded" version="2.0.0">
+        <name>DET</name>
+        <width>880</width>
+        <height>470</height>
+        <file>techui-support/bob/ADAravis/ADAravis_summary.bob</file>
+        <macros>
+          <P>BL11T-DI-CAM-01</P>
+          <R>:DET:</R>
+          <label>DET</label>
+          <IOC>https://t11-opis.diamond.ac.uk/bl11t-di-cam-01</IOC>
+        </macros>
+        <x>0</x>
+        <y>0</y>
+      </widget>
+      <widget type="action_button" version="2.0.0">
+        <name>ROI</name>
+        <width>100</width>
+        <height>40</height>
+        <pv_name/>
+        <text>ROI</text>
+        <actions>
+          <action type="open_display">
+            <description>Open Display</description>
+            <macros>
+              <P>BL11T-DI-CAM-01</P>
+              <R>:ROI:</R>
+              <label>ROI</label>
+            </macros>
+            <file>https://t11-opis.diamond.ac.uk/bl11t-di-cam-01/NDROI.pvi.bob</file>
+            <target>tab</target>
+          </action>
+        </actions>
+        <x>0</x>
+        <y>500</y>
+      </widget>
+      <widget type="action_button" version="2.0.0">
+        <name>PVA</name>
+        <width>100</width>
+        <height>40</height>
+        <pv_name/>
+        <text>PVA</text>
+        <actions>
+          <action type="open_display">
+            <description>Open Display</description>
+            <macros>
+              <P>BL11T-DI-CAM-01</P>
+              <R>:PVA:</R>
+              <label>PVA</label>
+            </macros>
+            <file>https://t11-opis.diamond.ac.uk/bl11t-di-cam-01/NDPvxs.pvi.bob</file>
+            <target>tab</target>
+          </action>
+        </actions>
+        <x>120</x>
+        <y>500</y>
+      </widget>
+      <widget type="action_button" version="2.0.0">
+        <name>STAT</name>
+        <width>100</width>
+        <height>40</height>
+        <pv_name/>
+        <text>STAT</text>
+        <actions>
+          <action type="open_display">
+            <description>Open Display</description>
+            <macros>
+              <P>BL11T-DI-CAM-01</P>
+              <R>:STAT:</R>
+              <label>STAT</label>
+            </macros>
+            <file>https://t11-opis.diamond.ac.uk/bl11t-di-cam-01/NDStats.pvi.bob</file>
+            <target>tab</target>
+          </action>
+        </actions>
+        <x>240</x>
+        <y>500</y>
+      </widget>
+      <widget type="action_button" version="2.0.0">
+        <name>HDF5</name>
+        <width>100</width>
+        <height>40</height>
+        <pv_name/>
+        <text>HDF5</text>
+        <actions>
+          <action type="open_display">
+            <description>Open Display</description>
+            <macros>
+              <P>BL11T-DI-CAM-01</P>
+              <R>:HDF5:</R>
+              <label>HDF5</label>
+            </macros>
+            <file>https://t11-opis.diamond.ac.uk/bl11t-di-cam-01/NDFileHDF5.pvi.bob</file>
+            <target>tab</target>
+          </action>
+        </actions>
+        <x>360</x>
+        <y>500</y>
+      </widget>
+      <widget type="action_button" version="2.0.0">
+        <name>ROISTAT</name>
+        <width>100</width>
+        <height>40</height>
+        <pv_name/>
+        <text>ROISTAT</text>
+        <actions>
+          <action type="open_display">
+            <description>Open Display</description>
+            <macros>
+              <P>BL11T-DI-CAM-01</P>
+              <R>:ROISTAT:</R>
+              <label>ROISTAT</label>
+            </macros>
+            <file>https://t11-opis.diamond.ac.uk/bl11t-di-cam-01/NDROIStat.pvi.bob</file>
+            <target>tab</target>
+          </action>
+        </actions>
+        <x>480</x>
+        <y>500</y>
+      </widget>
+    </widget>
+  </display>

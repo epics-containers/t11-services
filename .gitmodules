@@ -1,0 +1,3 @@
+[submodule "synoptic/techui-support"]
+	path = synoptic/techui-support
+	url = https://github.com/DiamondLightSource/techui-support.git

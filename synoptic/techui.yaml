@@ -1,15 +1,50 @@
 beamline:
   domain: t11
   location: bl11t
-  desc: "T11 Beamline or Tech Area"
+  desc: t11 simulation beamline
   url: t11-opis.diamond.ac.uk
 
-# add components for techUI-builder to build screens for
+# Components for techui-builder. Each key matches a symbol widget name in
+# index.bob; `techui-builder build` fills in that widget's link from here.
+#
+# `file` + `macros` link straight to the IOC's own engineering screen, which
+# the IOC publishes to the shared OPI volume as /<ioc-name>/index.bob. IOC is
+# relative to this synoptic's folder (/bl11t-synoptic/), so the links work on
+# any OPI server host and port.
+#
+# `status` feeds a <prefix>:STA calc record served by the bl11t-synoptic IOC
+# (techui-builder status -> /epics/opi/status.db). Each input is a .SEVR, so
+# STA is 0 when all are NO_ALARM and 1 otherwise; the MS flag carries alarm
+# severity across, so STA goes INVALID when the IOC is unreachable and the
+# symbol's alarm border shows it.
 components:
   DCAM1:
-    desc: GigE camera EXAMPLE
     prefix: BL11T-DI-CAM-01
+    label: Simulated detector
+    file: $(IOC)/index.bob
+    macros:
+      P: BL11T-DI-CAM-01
+      IOC: ../bl11t-di-cam-01
+    status:
+      - BL11T-DI-CAM-01:DET:DetectorState_RBV.SEVR NPP MS
 
   MOTORSIM1:
-    desc: Simulated motion controller with 2 axes for BL11T
     prefix: BL11T-MO-SIM-01
+    label: Simulated motors
+    file: $(IOC)/index.bob
+    macros:
+      P: BL11T-MO-SIMC-01
+      IOC: ../bl11t-mo-sim-01
+    status:
+      - BL11T-MO-SIMC-01:M1.SEVR NPP MS
+      - BL11T-MO-SIMC-01:M2.SEVR NPP MS
+
+  EATEST1:
+    prefix: BL11T-EA-TEST-01
+    label: Test IOC
+    file: $(IOC)/index.bob
+    macros:
+      P: BL11T-EA-TEST-01
+      IOC: ../bl11t-ea-test-01
+    status:
+      - BL11T-EA-TEST-01:IOC_CPU_LOAD.SEVR NPP MS
