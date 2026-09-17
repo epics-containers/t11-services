@@ -17,6 +17,42 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Lower resources to fit a 10 CPU namespace quota
+
+- **Commit:** 012d0bc
+- **t11-services:** `services/values.yaml`, `services/t11-blueapi/values.yaml`,
+  `services/t11-epics-gateways/values.yaml`, `services/t11-rabbitmq/values.yaml`,
+  `services/t11-epics-opis/`, `services/t11-epics-pvcs/values.yaml`,
+  `services/t11-tiled/values.yaml`, `services/t11-numtracker/values.yaml`,
+  `services/t11-opa/`, `services/t11-keycloak/`
+- **Template:** `services/values.yaml.jinja`,
+  `services/{% if "blueapi" in athena_services %}{{instrument}}-blueapi{% endif %}/values.yaml.jinja`,
+  `services/{% if gateway %}{{ domain }}-epics-gateways{% endif %}/values.yaml`,
+  `services/{% if "rabbitmq" in athena_services %}{{instrument}}-rabbitmq{% endif %}/values.yaml.jinja`,
+  `services/{{ domain }}-epics-opis/values.yaml`,
+  `services/{{ domain }}-epics-pvcs/values.yaml`
+- **Promote:** candidate
+- **Done:** [ ]
+
+A DLS personal namespace has a quota of 10 CPU limits. Its LimitRange gives
+every container without resources a default limit of 1 CPU and allows limits
+of at most 10 times the requests. Quota counts a Pod as the larger of its
+largest init container limit and the sum of its container limits. At the
+chart defaults the full beamline needed about 15.7 CPU, so blueapi, rabbitmq,
+tiled and tiled-postgres could not start. The limits are now: IOCs 250m in
+the `shared` anchor (di-cam keeps 1 CPU), blueapi 1 CPU, epics-gateways 500m
+per container, rabbitmq 500m with a 100m init container, epics-opis 100m,
+epics-pvcs 100m and the blueapi oauth2 Deployment 100m. The t11-only services
+are tiled 500m, tiled-postgres 500m, numtracker 200m, opa 200m and the
+keycloak bootstrap Job 200m. The total is 7.7 CPU, which leaves room for
+rollouts.
+
+Review: a beamline namespace has a larger quota, so the template may want
+these values only as a commented example. epics-opis is a local chart in t11;
+the template uses the upstream chart, which hardcodes a 600m limit. ioc-instance
+5.8.0 renders no resources for `initContainers`, so the synoptic init container
+still takes the 1 CPU LimitRange default. Both need a change in ec-helm-charts.
+
 ### Pin amd64-only images to amd64 nodes
 
 - **Commit:** da0cc76
