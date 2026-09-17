@@ -13,6 +13,10 @@ numtracker:
   image:
     tag: "1.1.0"
 
+  # the numtracker image is built for amd64 only
+  nodeSelector:
+    kubernetes.io/arch: amd64
+
   service:
     type: ClusterIP
     # compose served on 8406

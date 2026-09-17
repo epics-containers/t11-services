@@ -40,6 +40,11 @@ shared: &shared
     #   value: sr03c
     #   effect: NoSchedule
 
+  # several IOC images are built for amd64 only. Every DLS node is amd64,
+  # so this only matters on clusters with other node architectures
+  nodeSelector:
+    kubernetes.io/arch: amd64
+
 # shared settings for all ibek IOCs using the ioc-instance helm chart
 ioc-instance:
   <<: *shared

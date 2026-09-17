@@ -9,3 +9,7 @@ epics-gateways:
     runAsGroup: 36261
 
   hostNetwork: false
+
+  # the epics-gateways image is built for amd64 only
+  nodeSelector:
+    kubernetes.io/arch: amd64

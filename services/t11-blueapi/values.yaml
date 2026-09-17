@@ -16,6 +16,10 @@
 # is independent of it.
 
 blueapi:
+  # the blueapi image is built for amd64 only
+  nodeSelector:
+    kubernetes.io/arch: amd64
+
   # oauth2-proxy in front, so blueapi itself is not exposed
   ingress:
     enabled: false
