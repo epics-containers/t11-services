@@ -5,32 +5,27 @@ beamline:
   url: t11-opis.diamond.ac.uk
 
 # Components for techui-builder. Each key matches a symbol widget name in
-# index.bob; `techui-builder build` fills in that widget's link from here.
+# index.bob. `techui-builder build` (the tech-ui pre-commit hook) generates a
+# <component>.bob screen from the matching entities in services/*/config/
+# ioc.yaml and links the symbol to it, as in i19-services.
 #
-# `file` + `macros` link straight to the IOC's own engineering screen, which
-# the IOC publishes to the shared OPI volume as /<ioc-name>/index.bob. IOC is
-# relative to this synoptic's folder (/bl11t-synoptic/), so the links work on
-# any OPI server host and port.
+# techui-support has no screens for motorSim or the plain test IOC, so those
+# components use `file` to open the IOC's own screen from the OPI server
+# (/<ioc-name>/index.bob, relative to /bl11t-synoptic/).
 #
 # `status` feeds a <prefix>:STA calc record served by the bl11t-synoptic IOC
-# (techui-builder status -> /epics/opi/status.db). Each input is a .SEVR, so
-# STA is 0 when all are NO_ALARM and 1 otherwise; the MS flag carries alarm
-# severity across, so STA goes INVALID when the IOC is unreachable and the
-# symbol's alarm border shows it.
+# (techui-builder status -> /epics/opi/status.db): 0 when every input is
+# NO_ALARM, 1 otherwise, INVALID when an IOC is unreachable.
 components:
   DCAM1:
-    prefix: BL11T-DI-CAM-01
     label: Simulated detector
-    file: $(IOC)/index.bob
-    macros:
-      P: BL11T-DI-CAM-01
-      IOC: ../bl11t-di-cam-01
+    prefix: BL11T-DI-CAM-01
     status:
       - BL11T-DI-CAM-01:DET:DetectorState_RBV.SEVR NPP MS
 
   MOTORSIM1:
-    prefix: BL11T-MO-SIM-01
     label: Simulated motors
+    prefix: BL11T-MO-SIM-01
     file: $(IOC)/index.bob
     macros:
       P: BL11T-MO-SIMC-01
@@ -40,8 +35,8 @@ components:
       - BL11T-MO-SIMC-01:M2.SEVR NPP MS
 
   EATEST1:
-    prefix: BL11T-EA-TEST-01
     label: Test IOC
+    prefix: BL11T-EA-TEST-01
     file: $(IOC)/index.bob
     macros:
       P: BL11T-EA-TEST-01
