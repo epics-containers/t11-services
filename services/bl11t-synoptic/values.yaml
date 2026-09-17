@@ -6,6 +6,11 @@ ioc-instance:
 
   rebootEveryCommit: true
 
+  # the init container clones the synoptic repo into /data, so keep the
+  # data volume that ioc-instance 5.8.0 no longer adds by default
+  dataVolume:
+    enabled: true
+
   volumes:
     - name: init-home
       emptyDir: {}
