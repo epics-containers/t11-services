@@ -22,6 +22,11 @@ image:
 
 replicaCount: 1
 
+# the token issuer. The policy bundle reads it from the ISSUER environment
+# variable to verify every token; without it every decision that needs a
+# token is false. Must match the iss claim, which is keycloak's in-cluster name
+issuer: http://t11-keycloak:8080/realms/master
+
 service:
   type: ClusterIP
   port: 8181

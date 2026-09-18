@@ -1,0 +1,106 @@
+{{- /*
+Configure numtracker's instrument after every sync, as blueapi's system tests
+do in services/startup.py. Without it every scan fails with 'No configuration
+available for instrument'. numtracker keeps the configuration on its PVC, and
+the mutation leaves out scanNumber, so running it again never resets the scan
+count. It logs in as the system-test-blueapi-admin service account, which the
+t11-keycloak bootstrap creates and t11-opa makes a super admin.
+*/ -}}
+{{- with .Values.configure }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: t11-numtracker-configure
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: configure
+          image: {{ .image }}
+          # the DLS Kyverno policy rejects a container that does not set these
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            runAsNonRoot: true
+            runAsUser: 65534
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+          env:
+            - name: INSTRUMENT
+              value: {{ .instrument | quote }}
+            - name: DIRECTORY
+              value: {{ .directory | quote }}
+            - name: SCAN
+              value: {{ .scan | quote }}
+            - name: DETECTOR
+              value: {{ .detector | quote }}
+            - name: TOKEN_URL
+              value: {{ .tokenUrl | quote }}
+            - name: NUMTRACKER_URL
+              value: {{ .numtrackerUrl | quote }}
+          command:
+            - python
+            - -c
+            - |
+              import json, os, time, urllib.parse, urllib.request
+
+              def post(url, data, headers):
+                  req = urllib.request.Request(url, data=data, headers=headers)
+                  with urllib.request.urlopen(req, timeout=10) as r:
+                      return json.load(r)
+
+              # keycloak and numtracker may still be starting
+              for attempt in range(60):
+                  try:
+                      token = post(
+                          os.environ["TOKEN_URL"],
+                          urllib.parse.urlencode({
+                              "grant_type": "client_credentials",
+                              "client_id": "system-test-blueapi-admin",
+                              "client_secret": "secret",
+                          }).encode(),
+                          {},
+                      )["access_token"]
+                      query = (
+                          "mutation($i: String!, $c: ConfigurationUpdates!)"
+                          " { configure(instrument: $i, config: $c)"
+                          " { instrument scanTemplate dbScanNumber } }"
+                      )
+                      variables = {
+                          "i": os.environ["INSTRUMENT"],
+                          "c": {
+                              "directory": os.environ["DIRECTORY"],
+                              "scan": os.environ["SCAN"],
+                              "detector": os.environ["DETECTOR"],
+                          },
+                      }
+                      result = post(
+                          os.environ["NUMTRACKER_URL"],
+                          json.dumps({"query": query, "variables": variables}).encode(),
+                          {
+                              "Authorization": "Bearer " + token,
+                              "Content-Type": "application/json",
+                          },
+                      )
+                      if result.get("errors"):
+                          raise RuntimeError(result["errors"])
+                      print("configured", result["data"]["configure"])
+                      break
+                  except Exception as e:
+                      print(f"attempt {attempt}: {e}")
+                      time.sleep(5)
+              else:
+                  raise SystemExit("could not configure numtracker")
+{{- end }}

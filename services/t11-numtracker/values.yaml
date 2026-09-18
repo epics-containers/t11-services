@@ -51,3 +51,15 @@ numtracker:
       enabled: false
     graylog:
       enabled: false
+
+# the instrument that the configure Job (templates/job-configure.yaml) sets up
+# in numtracker. It must match blueapi's instrument metadata. The templates are
+# those of blueapi's system tests; the directory is inside the detector IOC
+configure:
+  image: docker.io/library/python:3.13-alpine
+  instrument: t11
+  directory: /tmp/
+  scan: "{instrument}-{scan_number}"
+  detector: "{instrument}-{scan_number}-{detector}"
+  tokenUrl: http://t11-keycloak:8080/realms/master/protocol/openid-connect/token
+  numtrackerUrl: http://t11-numtracker:8406/graphql
