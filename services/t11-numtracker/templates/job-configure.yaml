@@ -76,7 +76,7 @@ spec:
                       query = (
                           "mutation($i: String!, $c: ConfigurationUpdates!)"
                           " { configure(instrument: $i, config: $c)"
-                          " { instrument scanTemplate scanNumber } }"
+                          " { instrument scanTemplate dbScanNumber } }"
                       )
                       variables = {
                           "i": os.environ["INSTRUMENT"],
