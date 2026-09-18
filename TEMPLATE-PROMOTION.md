@@ -31,6 +31,25 @@ t11 runs its own keycloak, which real beamlines do not. Its H2 database was
 on the container filesystem, so every restart made new signing keys and tiled,
 which caches keys for an hour, rejected every token until it was restarted.
 
+### Make blueapi scans write through tiled, OPA and numtracker
+
+- **Commit:** 37d00c7, 84589a4, 4060051, 627b540, 0b83436
+- **t11-services:** `services/t11-tiled/values.yaml`,
+  `services/t11-tiled/templates/configmap-access-policy.yaml`,
+  `services/t11-opa/values.yaml`, `services/t11-opa/templates/deployment.yaml`,
+  `services/t11-numtracker/values.yaml`,
+  `services/t11-numtracker/templates/job-configure.yaml`
+- **Template:** none
+- **Promote:** candidate
+- **Done:** [ ]
+
+Four faults stopped every scan: the tiled `volumeMounts` override dropped the
+chart's config mount, so tiled ran with no authentication; the DLS access
+policy used `PrincipalType.external`, which tiled 0.2.18 renamed to `user`; OPA
+had no `ISSUER`, so no token verified; and numtracker had no instrument
+configured. Review: p46-p49-services carry the same access policy and
+`volumeMounts` pattern.
+
 ### Use DLS names for the camera PVs
 
 - **Commit:** 6f1cb55
