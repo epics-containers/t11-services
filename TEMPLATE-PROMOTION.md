@@ -17,6 +17,24 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Use DLS names for the camera PVs
+
+- **Commit:** 6f1cb55
+- **t11-services:** `services/bl11t-di-cam-01/config/ioc.yaml`,
+  `synoptic/techui.yaml`, `synoptic/DCAM1.bob`,
+  `services/t11-blueapi/values.yaml`, `dodal/t11.py`
+- **Template:** none
+- **Promote:** candidate
+- **Done:** [ ]
+
+techui-support shows an ADSimDetector with the ADAravis summary screen, which
+hardcodes `$(P):DRV:*`, `$(P):STAT:*` and `pva://$(P):PVA:ARRAY` and ignores
+`R`. The camera used `:DET:` and `PVA:OUTPUT`, so its synoptic screen showed
+disconnected PVs. The driver is now `:DRV:`, the PVA output `PVA:ARRAY` and
+the asyn ports `CAM.*`. blueapi moves to `dodal.beamlines.t11`, which uses the
+`DRV:` suffix. Review: if the template's example camera IOC uses `:DET:`, it
+has the same mismatch with its techui screens.
+
 ### Publish the blueapi web UI
 
 - **Commit:** 9e75046, eda4375, 305de35, 57c5153, 4f95f7b
