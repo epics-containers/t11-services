@@ -25,10 +25,10 @@ Simulated hardware comes from the IOC instances `bl11t-di-cam-01`,
 
 Every secret in this stack is a **plain Secret holding a dev value**, not a
 SealedSecret: the sim must deploy without a sealed-secrets controller. Keycloak
-runs `start-dev`, whose H2 database sits on the container filesystem with no
-volume mounted, so a restart loses every user and client. A `postStart` hook
-runs the bootstrap script on every container start to create them again, but
-anything added by hand in the admin console is lost. Demo users are `alice/alice`
+runs `start-dev` with its H2 database on a PVC, so users, clients and the
+signing keys survive a restart. A `postStart` hook runs the bootstrap script on
+every container start; it creates the realm on a new volume and skips what
+already exists. Demo users are `alice/alice`
 and `bob/bob`, admin is `admin/admin`. **None of this is fit for production.**
 
 ### Known limits
