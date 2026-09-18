@@ -1,0 +1,17 @@
+{{- with .Values.persistence }}
+{{- if .enabled }}
+# keycloak's H2 database and transaction logs, so users, clients and the
+# realm signing keys survive a restart. New keys on every start made tiled,
+# which caches them for an hour, reject every token until it was restarted
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $.Release.Name }}-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .size }}
+{{- end }}
+{{- end }}

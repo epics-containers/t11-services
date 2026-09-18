@@ -42,7 +42,13 @@ tiled:
     - name: TILED_SINGLE_USER_API_KEY
       value: SECRET
 
+  # this list replaces the chart's default, which is only the config mount, so
+  # repeat it. Without it tiled runs the image's built-in config: no
+  # authentication providers, so every token gets 401
   volumeMounts:
+    - name: config
+      mountPath: /deploy/config
+      readOnly: true
     - name: access-policy
       mountPath: /deploy/access_policy
       readOnly: true

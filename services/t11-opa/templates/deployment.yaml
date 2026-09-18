@@ -73,6 +73,9 @@ spec:
             - --config-file
             - /mnt/config/config.yaml
             - --log-level=info
+          env:
+            - name: ISSUER
+              value: {{ .Values.issuer | quote }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
