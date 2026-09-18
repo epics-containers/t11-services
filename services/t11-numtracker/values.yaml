@@ -56,7 +56,7 @@ numtracker:
 # in numtracker. It must match blueapi's instrument metadata. The templates are
 # those of blueapi's system tests; the directory is inside the detector IOC
 configure:
-  image: docker.io/library/python:3.13-alpine
+  image: docker.io/library/python:3.14-alpine
   instrument: t11
   directory: /tmp/
   scan: "{instrument}-{scan_number}"
