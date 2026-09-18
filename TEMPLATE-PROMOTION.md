@@ -17,6 +17,22 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Publish the keycloak admin console
+
+- **Commit:** 77b494d
+- **t11-services:** `services/t11-keycloak/values.yaml`,
+  `services/t11-keycloak/templates/deployment.yaml`, `README.md`
+- **Template:** none
+- **Promote:** no. The template has no keycloak; t11 runs its own only to
+  simulate the DLS central one.
+- **Done:** n/a
+
+The t11-keycloak Service is now a LoadBalancer, and `hostname` defaults to
+empty, which leaves `KC_HOSTNAME` unset. start-dev then takes the hostname
+from each request, so the admin console works at
+`http://<external IP>:8080/admin`. The in-cluster clients all call
+`http://t11-keycloak:8080`, so their token issuer is unchanged.
+
 ### Bump ioc-instance and ioc-group to 5.9.0
 
 - **Commit:** 3b9c526
