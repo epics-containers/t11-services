@@ -1,0 +1,42 @@
+# A tiled authenticator that waits for keycloak. tiled's
+# ProxiedOIDCAuthenticator fetches keycloak's OIDC discovery document once,
+# while tiled starts, and tiled exits if keycloak does not answer. On a fresh
+# deploy keycloak takes minutes to come up, so tiled crash-looped and then sat
+# in restart back-off after keycloak was ready. This subclass retries the
+# fetch until keycloak answers. It is mounted next to dls.py, in the
+# access_policy package.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: t11-tiled-wait-oidc
+data:
+  wait_oidc.py: |-
+    import functools
+    import sys
+    import time
+    from typing import Any
+
+    import httpx
+    from tiled.authenticators import ProxiedOIDCAuthenticator
+
+    # seconds between attempts to fetch the discovery document
+    POLL_SECONDS = 5
+
+
+    class WaitingProxiedOIDCAuthenticator(ProxiedOIDCAuthenticator):
+        """A ProxiedOIDCAuthenticator that waits for the OIDC provider"""
+
+        @functools.cached_property
+        def _config_from_oidc_url(self) -> dict[str, Any]:
+            while True:
+                try:
+                    response = httpx.get(self._well_known_url, timeout=5)
+                    response.raise_for_status()
+                    return response.json()
+                except httpx.HTTPError as e:
+                    print(
+                        f"waiting for {self._well_known_url}: {e!r}",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    time.sleep(POLL_SECONDS)

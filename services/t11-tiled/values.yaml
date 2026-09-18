@@ -33,13 +33,14 @@ tiled:
       cpu: 500m
       memory: 1Gi
 
-  # tiled takes about 20s to start on a quiet node and longer when the whole
-  # beamline starts at once. The chart's liveness probe has no initial delay
-  # and restarts it after about 30s, which on a fresh deploy became a crash
-  # loop with minutes of back-off. Probe liveness only after 2 minutes; the
-  # readiness probe still reports tiled as soon as it serves
+  # tiled takes about 20s to start on a quiet node, and it waits for keycloak
+  # before it serves (see templates/configmap-wait-oidc.yaml), which takes
+  # minutes on a fresh deploy. The chart's liveness probe has no initial delay
+  # and would restart it after about 30s, into a crash loop with minutes of
+  # back-off. Probe liveness only after 10 minutes; the readiness probe still
+  # reports tiled as soon as it serves
   livenessProbe:
-    initialDelaySeconds: 120
+    initialDelaySeconds: 600
 
   extraEnvVars:
     - name: PYTHONPATH
@@ -58,9 +59,15 @@ tiled:
       mountPath: /deploy/access_policy
       readOnly: true
   volumes:
+    # the access_policy package: the OPA policy (dls.py) and the authenticator
+    # that waits for keycloak (wait_oidc.py)
     - name: access-policy
-      configMap:
-        name: t11-tiled-access-policy
+      projected:
+        sources:
+          - configMap:
+              name: t11-tiled-access-policy
+          - configMap:
+              name: t11-tiled-wait-oidc
 
   # rendered into the subchart's own ConfigMap as /deploy/config/config.yaml
   config:
@@ -72,7 +79,8 @@ tiled:
           - SECRET
         providers:
         - provider: keycloak_oidc
-          authenticator: tiled.authenticators:ProxiedOIDCAuthenticator
+          # tiled.authenticators:ProxiedOIDCAuthenticator, waiting for keycloak
+          authenticator: access_policy.wait_oidc:WaitingProxiedOIDCAuthenticator
           args:
             audience: account
             client_id: tiled
