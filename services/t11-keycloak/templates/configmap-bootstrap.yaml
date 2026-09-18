@@ -17,7 +17,8 @@ data:
     # the image has no curl, so ask the management port with bash's /dev/tcp.
     # Give up after 10 minutes: a failed postStart hook restarts the container
     for ((i = 0; i < 200; i++)); do
-        if exec 3<>/dev/tcp/localhost/9000 2>/dev/null; then
+        # the braces keep 2>/dev/null from applying to the rest of the script
+        if { exec 3<>/dev/tcp/localhost/9000; } 2>/dev/null; then
             printf 'GET /health/ready HTTP/1.0\r\nHost: localhost\r\n\r\n' >&3
             if grep -q '"UP"' <&3; then
                 exec 3>&-
