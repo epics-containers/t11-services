@@ -11,20 +11,34 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-keycloak-proxy
-data:
-  keycloak.conf: |
-    server {
-        listen 8081;
-        location / {
-            proxy_pass http://t11-keycloak:8080;
-            proxy_set_header Host t11-keycloak:8080;
-            # sub_filter cannot rewrite a compressed body
-            proxy_set_header Accept-Encoding "";
-            proxy_redirect http://t11-keycloak:8080/ /;
-            sub_filter_types *;
-            sub_filter_once off;
-            sub_filter 'http://t11-keycloak:8080/' '/';
-            sub_filter 'http:\/\/t11-keycloak:8080\/' '\/';
+  # a whole nginx.conf, not a conf.d file: the image's own runs a worker per
+  # node CPU, and on a large node they overrun the memory limit
+  nginx.conf: |
+    worker_processes 1;
+    pid /tmp/nginx.pid;
+    error_log /dev/stderr notice;
+    events {
+        worker_connections 256;
+    }
+    http {
+        access_log /dev/stdout;
+        client_body_temp_path /tmp/client_temp;
+        proxy_temp_path /tmp/proxy_temp;
+        fastcgi_temp_path /tmp/fastcgi_temp;
+        uwsgi_temp_path /tmp/uwsgi_temp;
+        scgi_temp_path /tmp/scgi_temp;
+        server {
+            listen 8081;
+            location / {
+                proxy_pass http://t11-keycloak:8080;
+                proxy_set_header Host t11-keycloak:8080;
+                # sub_filter cannot rewrite a compressed body
+                proxy_set_header Accept-Encoding "";
+                proxy_redirect http://t11-keycloak:8080/ /;
+                sub_filter_types *;
+                sub_filter_once off;
+                sub_filter 'http://t11-keycloak:8080/' '/';
+                sub_filter 'http:\/\/t11-keycloak:8080\/' '\/';
+            }
         }
     }

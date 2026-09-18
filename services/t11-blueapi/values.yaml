@@ -163,7 +163,8 @@ oauth2:
           memory: 64Mi
       volumeMounts:
         - name: keycloak-proxy
-          mountPath: /etc/nginx/conf.d
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
   extraVolumes:
     - name: keycloak-proxy
       configMap:
