@@ -8,14 +8,14 @@
       <width>930</width>
       <height>590</height>
       <widget type="embedded" version="2.0.0">
-        <name>DET</name>
+        <name>DRV</name>
         <width>880</width>
         <height>470</height>
         <file>techui-support/bob/ADAravis/ADAravis_summary.bob</file>
         <macros>
           <P>BL11T-DI-CAM-01</P>
-          <R>:DET:</R>
-          <label>DET</label>
+          <R>:DRV:</R>
+          <label>DRV</label>
           <IOC>https://t11-opis.diamond.ac.uk/bl11t-di-cam-01</IOC>
         </macros>
         <x>0</x>

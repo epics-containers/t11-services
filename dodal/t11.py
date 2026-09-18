@@ -7,18 +7,18 @@ t11-services:
     services/bl11t-mo-sim-01   motorSim.simMotorController  BL11T-MO-SIMC-01:
                                axes M1 (x) and M2 (theta)
     services/bl11t-di-cam-01   ADSimDetector.simDetector    BL11T-DI-CAM-01:
-                               driver suffix DET, HDF5 writer suffix HDF5
+                               driver suffix DRV, HDF5 writer suffix HDF5
 
-THIS FILE IS A DRAFT FOR AN UPSTREAM PR. It must be merged into
-DiamondLightSource/dodal as src/dodal/beamlines/t11.py and released before
-services/t11-blueapi can start -- blueapi imports it as its device source.
+Reference copy of src/dodal/beamlines/t11.py on the DiamondLightSource/dodal
+``t11`` branch, which services/t11-blueapi installs until it is released.
+Keep the two in step.
 """
 
 from ophyd_async.epics.adcore import ADWriterFactory
 from ophyd_async.epics.adsimdetector import SimDetector
 
 from dodal.common.beamlines.beamline_utils import set_beamline as set_utils_beamline
-from dodal.common.beamlines.device_helpers import DET_SUFFIX, HDF5_SUFFIX
+from dodal.common.beamlines.device_helpers import HDF5_SUFFIX
 from dodal.device_manager import DeviceManager
 from dodal.devices.motors import XThetaStage
 from dodal.log import set_beamline as set_log_beamline
@@ -59,5 +59,5 @@ def det(path_provider) -> SimDetector:
     return SimDetector(
         f"{PREFIX.beamline_prefix}-DI-CAM-01:",
         ADWriterFactory.hdf(path_provider=path_provider, writer_suffix=HDF5_SUFFIX),
-        driver_suffix=DET_SUFFIX,
+        driver_suffix="DRV:",
     )

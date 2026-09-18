@@ -9,11 +9,9 @@
 #   tiled.diamond.ac.uk            -> t11-tiled
 #   <instrument>-rabbitmq-daq...   -> t11-rabbitmq
 #
-# !! PREREQUISITE !! `dodal.beamlines.t11` does not exist upstream yet. The
-# module is drafted in this repo at dodal/t11.py -- until it is merged into
-# DiamondLightSource/dodal and released, the worker will fail to import its
-# device source and this service will not start. Every other t11 DAQ service
-# is independent of it.
+# Devices come from `dodal.beamlines.t11`, which is not in a dodal release
+# yet. The worker installs dodal from the `t11` branch (scratch, below) until
+# it is; dodal/t11.py in this repo is the reference copy of that module.
 
 blueapi:
   # the blueapi image is built for amd64 only
@@ -42,10 +40,8 @@ blueapi:
 
   extraEnvVars:
     - name: BEAMLINE
-      value: adsim
-    - name: INSTRUMENT
       value: t11
-    - name: ADSIM_PREFIX
+    - name: INSTRUMENT
       value: t11
     # reach the IOCs through this repo's own gateway service
     - name: EPICS_PVA_NAME_SERVERS
@@ -65,10 +61,10 @@ blueapi:
   worker:
     env:
       metadata:
-        instrument: adsim
+        instrument: t11
       sources:
         - kind: deviceManager
-          module: dodal.beamlines.adsim
+          module: dodal.beamlines.t11
         - kind: planFunctions
           module: dodal.plans
         - kind: planFunctions
@@ -113,7 +109,7 @@ blueapi:
       repositories:
         - name: dodal
           remote_url: https://github.com/DiamondLightSource/dodal.git
-          target_revision: adsim-prefix
+          target_revision: t11
 
   initContainer:
     enabled: true

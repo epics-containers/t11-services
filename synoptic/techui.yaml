@@ -21,7 +21,7 @@ components:
     label: Simulated detector
     prefix: BL11T-DI-CAM-01
     status:
-      - BL11T-DI-CAM-01:DET:DetectorState_RBV.SEVR NPP MS
+      - BL11T-DI-CAM-01:DRV:DetectorState_RBV.SEVR NPP MS
 
   MOTORSIM1:
     label: Simulated motors

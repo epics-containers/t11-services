@@ -41,10 +41,9 @@ and `bob/bob`, admin is `admin/admin`. **None of this is fit for production.**
   ones. The tiled UI has no such proxy, so its login still needs an Ingress.
   The Keycloak admin console works at `http://<keycloak external IP>:8080/admin`.
   `scripts/urls.sh` in t11-deployment prints both addresses.
-- **`t11-blueapi` needs `dodal.beamlines.t11`**, which does not exist upstream
-  yet. The module is drafted at [`dodal/t11.py`](dodal/t11.py) and must be
-  merged into DiamondLightSource/dodal and released before blueapi will start.
-  Every other service in the stack is independent of it.
+- **`t11-blueapi` needs `dodal.beamlines.t11`**, which is not in a dodal
+  release yet. The worker installs dodal from its `t11` branch until it is;
+  [`dodal/t11.py`](dodal/t11.py) is the reference copy of that module.
 - `t11-opa` pulls its policy bundle from `ghcr.io/diamondlightsource/authz-policy`
   and `t11-blueapi` clones dodal from GitHub. Both are public artifacts, not
   Diamond services, but they do mean the cluster needs egress.
