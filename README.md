@@ -15,7 +15,7 @@ the central authz bundler, `numtracker-staging.diamond.ac.uk` or
 | `t11-keycloak` | identity provider + realm bootstrap | daq-services `keycloak` |
 | `t11-opa` | Open Policy Agent, local data + published policy bundle | daq-services `opa` |
 | `t11-numtracker` | scan-number service, sqlite on its own PVC | daq-services `numtracker` |
-| `t11-tiled` | data access + its own postgres | daq-services `tiled`, `tiled-postgres` |
+| `t11-tiled` | data access, in-memory sqlite | daq-services `tiled` |
 | `t11-blueapi` | bluesky worker + oauth2-proxy | daq-services `blueapi-oauth2-proxy` |
 
 Simulated hardware comes from the IOC instances `bl11t-di-cam-01`,

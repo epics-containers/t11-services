@@ -9,9 +9,3 @@ dependencies:
   - name: tiled
     version: "0.2.2"
     repository: "oci://ghcr.io/bluesky/charts"
-
-  # compose ran a separate `tiled-postgres` service; in-cluster it is a subchart
-  # so the database lives and dies with this release
-  - name: postgres
-    version: 1.6.1
-    repository: https://groundhog2k.github.io/helm-charts/

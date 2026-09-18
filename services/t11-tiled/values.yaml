@@ -1,4 +1,4 @@
-# Ported from dev-environment/daq-services `tiled` + `tiled-postgres`.
+# Ported from dev-environment/daq-services `tiled`.
 #
 # Every URL compose pointed at localhost now points at an in-cluster service:
 # nothing here references tiled.diamond.ac.uk, identity.diamond.ac.uk or
@@ -9,8 +9,10 @@
 #    ghcr.io/zohebshaikh/diamond-tiled. The DLS OPA access policy that image
 #    bakes in is instead mounted from templates/configmap-access-policy.yaml,
 #    which is p46-services' proven arrangement.
-#  - `tiled_catalog` is created by the postgres subchart as the user database;
-#    only `tiled_storage` needs the extra init script.
+#  - compose's `tiled-postgres` service is not ported. The config below keeps
+#    the auth database, catalog and writable storage in in-memory sqlite, so
+#    a database server would never be used, and its PVC would slow a fresh
+#    deploy. Everything tiled holds is lost when its pod restarts.
 
 tiled:
   fullnameOverride: t11-tiled
@@ -31,14 +33,18 @@ tiled:
       cpu: 500m
       memory: 1Gi
 
+  # tiled takes about 20s to start on a quiet node, and it waits for keycloak
+  # before it serves (see templates/configmap-wait-oidc.yaml), which takes
+  # minutes on a fresh deploy. The chart's liveness probe has no initial delay
+  # and would restart it after about 30s, into a crash loop with minutes of
+  # back-off. Probe liveness only after 10 minutes; the readiness probe still
+  # reports tiled as soon as it serves
+  livenessProbe:
+    initialDelaySeconds: 600
+
   extraEnvVars:
     - name: PYTHONPATH
       value: /deploy/
-    - name: POSTGRES_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: t11-tiled-postgres
-          key: USER_PASS
     - name: TILED_SINGLE_USER_API_KEY
       value: SECRET
 
@@ -53,9 +59,15 @@ tiled:
       mountPath: /deploy/access_policy
       readOnly: true
   volumes:
+    # the access_policy package: the OPA policy (dls.py) and the authenticator
+    # that waits for keycloak (wait_oidc.py)
     - name: access-policy
-      configMap:
-        name: t11-tiled-access-policy
+      projected:
+        sources:
+          - configMap:
+              name: t11-tiled-access-policy
+          - configMap:
+              name: t11-tiled-wait-oidc
 
   # rendered into the subchart's own ConfigMap as /deploy/config/config.yaml
   config:
@@ -67,7 +79,8 @@ tiled:
           - SECRET
         providers:
         - provider: keycloak_oidc
-          authenticator: tiled.authenticators:ProxiedOIDCAuthenticator
+          # tiled.authenticators:ProxiedOIDCAuthenticator, waiting for keycloak
+          authenticator: access_policy.wait_oidc:WaitingProxiedOIDCAuthenticator
           args:
             audience: account
             client_id: tiled
@@ -96,63 +109,3 @@ tiled:
           token_audience: account
           empty_access_blob_public: true
 
-postgres:
-  fullnameOverride: t11-tiled-postgres
-  useDeployment: true
-
-  userDatabase:
-    existingSecret: t11-tiled-postgres
-    name:
-      value: tiled_catalog
-      secretKey: DB_NAME
-    user:
-      value: tiled
-      secretKey: DB_USER
-    password:
-      secretKey: USER_PASS
-
-  settings:
-    existingSecret: t11-tiled-postgres
-    superuserPassword:
-      secretKey: ADMIN_PASS
-    authMethod: scram-sha-256
-    initDbArgs: "--auth-local=scram-sha-256 --auth=scram-sha-256"
-
-  # compose's tiled_config/initdb/01-create-databases.sh. The subchart already
-  # creates tiled_catalog as the user database, so only tiled_storage is left.
-  customScripts:
-    02-create-storage-database.sh: |
-      #!/bin/bash
-      set -e
-      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "postgres" <<-EOSQL
-          CREATE DATABASE tiled_storage OWNER tiled;
-      EOSQL
-
-  storage:
-    volumeName: t11-tiled-postgres-data
-    requestedSize: 2Gi
-    accessModes:
-      - ReadWriteOnce
-
-  resources:
-    requests:
-      cpu: 50m
-      memory: 128Mi
-    limits:
-      cpu: 500m
-      memory: 512Mi
-
-  # without this the init container takes the namespace LimitRange default
-  # (1 CPU at DLS), and quota counts the larger of init and main container
-  initResources:
-    requests:
-      cpu: 10m
-      memory: 16Mi
-    limits:
-      cpu: 100m
-      memory: 64Mi
-
-# Dev credentials for the standalone sim -- see t11-rabbitmq/templates/secret.yaml
-postgresPasswords:
-  user: tiled_pg
-  admin: tiled_pg_admin
