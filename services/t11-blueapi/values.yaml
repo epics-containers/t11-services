@@ -147,6 +147,13 @@ oauth2:
       ports:
         - name: keycloak-proxy
           containerPort: 8081
+      # the DLS Kyverno policy rejects a container that does not set these
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        runAsNonRoot: true
+        capabilities:
+          drop: ["ALL"]
       resources:
         requests:
           cpu: 10m
