@@ -122,8 +122,53 @@ blueapi:
 
 # Lifted from dev-environment/daq-services/services/blueapi-oauth2-proxy/,
 # with the issuer and upstream pointed in-cluster.
+#
+# The blueapi web UI is published through this proxy's LoadBalancer, at
+# http://<external IP>/docs; scripts/urls.sh in t11-deployment prints the
+# address. A browser cannot resolve the in-cluster names, and the external IPs
+# change when a Service is recreated, so the browser only ever talks to this
+# one IP:
+#  - /realms/ and /resources/ go, without a login, to an nginx sidecar in
+#    front of keycloak (templates/keycloak-proxy.yaml). It calls keycloak as
+#    t11-keycloak:8080, so every token's issuer is
+#    http://t11-keycloak:8080/realms/master, as blueapi and this proxy
+#    require. It rewrites the absolute t11-keycloak:8080 URLs in keycloak's
+#    responses into relative ones, so the browser stays on this IP
+#  - loginURL is relative, so the browser logs in through this IP too
+#  - the t11-blueapi client accepts any redirect URI, so keycloak allows the
+#    callback to this IP
 oauth2:
   fullnameOverride: t11-blueapi-oauth2
+  service:
+    type: LoadBalancer
+  extraContainers:
+    - name: keycloak-proxy
+      image: nginxinc/nginx-unprivileged:1.29-alpine
+      ports:
+        - name: keycloak-proxy
+          containerPort: 8081
+      # the DLS Kyverno policy rejects a container that does not set these
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        runAsNonRoot: true
+        capabilities:
+          drop: ["ALL"]
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      volumeMounts:
+        - name: keycloak-proxy
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+  extraVolumes:
+    - name: keycloak-proxy
+      configMap:
+        name: t11-blueapi-keycloak-proxy
   proxyVarsAsSecrets: false
   # the chart sets no resources, so the namespace LimitRange default (1 CPU at
   # DLS) would apply and count against the namespace CPU quota
@@ -155,7 +200,9 @@ oauth2:
       email_domains = [ "*" ]
       skip_auth_routes=[
       "GET=^/config/oidc",
-      "GET=^/healthz"
+      "GET=^/healthz",
+      "^/realms/",
+      "^/resources/"
       ]
       whitelist_domains=["t11-keycloak:8080"]
   ingress:
@@ -169,12 +216,27 @@ oauth2:
           - id: t11-blueapi
             path: /
             uri: http://t11-blueapi
+          # keycloak's browser endpoints, for the login pages, through the
+          # keycloak-proxy sidecar
+          - id: t11-keycloak-realms
+            path: /realms/
+            uri: http://localhost:8081
+          - id: t11-keycloak-resources
+            path: /resources/
+            uri: http://localhost:8081
       providers:
         - provider: oidc
           id: t11-keycloak
           clientID: t11-blueapi
           clientSecret: ${OAUTH2_PROXY_CLIENT_SECRET}
+          # discovery would replace these with keycloak's in-cluster URLs,
+          # which a browser cannot reach
+          loginURL: /realms/master/protocol/openid-connect/auth
+          redeemURL: http://t11-keycloak:8080/realms/master/protocol/openid-connect/token
+          profileURL: http://t11-keycloak:8080/realms/master/protocol/openid-connect/userinfo
           oidcConfig:
+            skipDiscovery: true
+            jwksURL: http://t11-keycloak:8080/realms/master/protocol/openid-connect/certs
             insecureAllowUnverifiedEmail: true
             insecureSkipNonce: true
             emailClaim: sub

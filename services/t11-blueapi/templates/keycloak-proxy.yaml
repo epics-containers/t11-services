@@ -1,0 +1,46 @@
+# nginx config for the keycloak-proxy sidecar in the oauth2-proxy Pod, which
+# serves keycloak's login pages to a browser at the oauth2-proxy
+# LoadBalancer IP. See the oauth2 values.
+#
+# keycloak has no fixed hostname: it builds its URLs, and the issuer in every
+# token, from the Host of the request that starts a login. The sidecar sends
+# Host t11-keycloak:8080, so the issuer is the one that blueapi and
+# oauth2-proxy check. keycloak then puts absolute t11-keycloak:8080 URLs in its
+# pages and redirects, which a browser cannot reach, so the sidecar rewrites
+# them into relative URLs on the same IP.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-keycloak-proxy
+data:
+  # a whole nginx.conf, not a conf.d file: the image's own runs a worker per
+  # node CPU, and on a large node they overrun the memory limit
+  nginx.conf: |
+    worker_processes 1;
+    pid /tmp/nginx.pid;
+    error_log /dev/stderr notice;
+    events {
+        worker_connections 256;
+    }
+    http {
+        access_log /dev/stdout;
+        client_body_temp_path /tmp/client_temp;
+        proxy_temp_path /tmp/proxy_temp;
+        fastcgi_temp_path /tmp/fastcgi_temp;
+        uwsgi_temp_path /tmp/uwsgi_temp;
+        scgi_temp_path /tmp/scgi_temp;
+        server {
+            listen 8081;
+            location / {
+                proxy_pass http://t11-keycloak:8080;
+                proxy_set_header Host t11-keycloak:8080;
+                # sub_filter cannot rewrite a compressed body
+                proxy_set_header Accept-Encoding "";
+                proxy_redirect http://t11-keycloak:8080/ /;
+                sub_filter_types *;
+                sub_filter_once off;
+                sub_filter 'http://t11-keycloak:8080/' '/';
+                sub_filter 'http:\/\/t11-keycloak:8080\/' '\/';
+            }
+        }
+    }
