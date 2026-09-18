@@ -17,6 +17,20 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Update the gateways to 2026.9.4
+
+- **Commit:** 1a6f882
+- **t11-services:** `services/t11-epics-gateways/Chart.yaml`,
+  `services/t11-epics-gateways/values.yaml`
+- **Template:** `services/{{ domain }}-epics-gateways/`
+- **Promote:** candidate
+- **Done:** [ ]
+
+epics-gateways 2026.9.4 restarts the gateways for `restartOnNewIocs` only when
+an IOC service is created after they started, not when an IOC restarts, and
+caps the CA gateway's search period at 60 s. Review: beamlines that set
+`restartOnNewIocs` should take it; for the rest it only adds the search cap.
+
 ### Keep keycloak's database on a PVC
 
 - **Commit:** dd62f8b

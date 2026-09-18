@@ -10,8 +10,9 @@ epics-gateways:
 
   hostNetwork: false
 
-  # restart the gateways whenever an IOC in the namespace becomes Ready after
-  # they started, so they find IOCs that started later or were restarted
+  # restart the gateways whenever an IOC service is created after they
+  # started, so they find IOCs added later. A restarted IOC keeps its service
+  # and the gateways reconnect to it without a restart
   restartOnNewIocs: true
 
   # the epics-gateways image is built for amd64 only
