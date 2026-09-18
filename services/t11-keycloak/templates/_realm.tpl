@@ -128,11 +128,16 @@ default scopes drops the default optional scopes, so name those too */ -}}
     "frontchannel.logout.session.required" "true"
     "use.refresh.tokens" "true" -}}
 
+{{- /* a partial import gives a user no roles, where the admin API gives
+the realm's default roles. Those carry the "account" audience that blueapi
+requires, so name them */ -}}
+{{- $defaultRoles := list (print "default-roles-" .Values.realm) -}}
 {{- $users := list -}}
 {{- range .Values.users -}}
 {{- $users = append $users (dict
     "username" (regexReplaceAll ":.*$" . "")
     "enabled" true
+    "realmRoles" $defaultRoles
     "credentials" (list (dict "type" "password" "value" (regexReplaceAll "^.*:" . "") "temporary" false))) -}}
 {{- end -}}
 
@@ -183,7 +188,7 @@ not exist"). Name them, with the default roles the admin API gives them */ -}}
     "username" (print "service-account-" .clientId | lower)
     "enabled" true
     "serviceAccountClientId" .clientId
-    "realmRoles" (list (print "default-roles-" $.Values.realm))) -}}
+    "realmRoles" $defaultRoles) -}}
 {{- end -}}
 {{- end -}}
 
