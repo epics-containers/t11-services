@@ -19,7 +19,7 @@ Template paths are relative to `template/` in services-template-helm.
 
 ### Bootstrap keycloak on every start
 
-- **Commit:** 50f19c1, 40ad27e and the partial import commit
+- **Commit:** 50f19c1, 40ad27e, 8abb06e
 - **t11-services:** `services/t11-keycloak/templates/deployment.yaml`,
   `services/t11-keycloak/templates/configmap-bootstrap.yaml`,
   `services/t11-keycloak/templates/_realm.tpl`,
