@@ -10,11 +10,11 @@
 #  - the realm bootstrap (users, clients, mappers) is the actual substance
 #    here, and it is a straight lift of the compose `startup.sh`
 #
-# NOT FOR PRODUCTION. The H2 database sits on the container filesystem with no
-# volume mounted, so a restart loses every user and client. A postStart hook
-# runs the bootstrap script on every container start to create them again, so
-# a restart recovers by itself; anything added by hand in the admin console is
-# still lost.
+# NOT FOR PRODUCTION: start-dev with an H2 database. The database is on a PVC
+# (persistence, below), so users, clients, anything added in the admin console
+# and the realm signing keys survive a restart. A postStart hook runs the
+# bootstrap script on every container start, which creates the realm on a new
+# volume and skips what already exists.
 # Real beamlines use identity.diamond.ac.uk.
 
 image:
@@ -65,6 +65,14 @@ redirect:
 users:
   - alice:alice
   - bob:bob
+
+# the H2 database and transaction logs, mounted at /opt/keycloak/data. With
+# enabled: false they are on the container filesystem and every restart
+# starts from an empty realm with new signing keys; tiled then rejects tokens
+# for up to an hour, until its key cache expires
+persistence:
+  enabled: true
+  size: 1Gi
 
 resources:
   requests:

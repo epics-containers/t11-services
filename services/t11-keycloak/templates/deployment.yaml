@@ -6,6 +6,9 @@ metadata:
     app: {{ .Release.Name }}
 spec:
   replicas: 1
+  # two Pods must never open the same H2 database
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -48,12 +51,13 @@ spec:
             - name: management
               containerPort: 9000
               protocol: TCP
-          # The H2 database lives on the container filesystem, so every
-          # container start begins with an empty realm. Configure it again
-          # each time, as compose's post_start did. The container is not
-          # Running, and so not Ready, until the hook exits, so clients never
-          # see a realm without its clients and users. A hook that fails
-          # restarts the container. Read its output with
+          # Configure the realm on every container start, as compose's
+          # post_start did. With persistence the realm is usually there
+          # already, and the import skips what exists; without it (or on a
+          # new volume) it starts empty. The container is not Running, and so
+          # not Ready, until the hook exits, so clients never see a realm
+          # without its clients and users. A hook that fails restarts the
+          # container. Read its output with
           #   kubectl exec deploy/t11-keycloak -- cat /tmp/bootstrap.log
           lifecycle:
             postStart:
@@ -78,7 +82,16 @@ spec:
           volumeMounts:
             - name: bootstrap
               mountPath: /tmp/config
+            {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: /opt/keycloak/data
+            {{- end }}
       volumes:
         - name: bootstrap
           configMap:
             name: {{ .Release.Name }}-bootstrap
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-data
+        {{- end }}
