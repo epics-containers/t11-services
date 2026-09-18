@@ -17,6 +17,26 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Publish the blueapi web UI
+
+- **Commit:** 9e75046, eda4375, 305de35, 57c5153, 4f95f7b
+- **t11-services:** `services/t11-blueapi/values.yaml`,
+  `services/t11-blueapi/templates/keycloak-proxy.yaml`,
+  `services/t11-keycloak/templates/_realm.tpl`, `README.md`
+- **Template:** none
+- **Promote:** no. A real beamline logs in at identity.diamond.ac.uk, which
+  has a stable hostname, and publishes blueapi through an Ingress.
+- **Done:** n/a
+
+The t11-blueapi-oauth2 Service is a LoadBalancer. A browser can resolve none
+of the in-cluster names, and the IPs change, so it logs in through that one
+IP: oauth2-proxy forwards `/realms/` and `/resources/` to an nginx sidecar,
+which calls keycloak as `t11-keycloak:8080`, so that every token's issuer is
+the one blueapi checks, and rewrites keycloak's absolute URLs into relative
+ones. The login URL is relative, discovery is off, and the t11-blueapi client
+accepts any redirect URI. The sidecar needs an explicit securityContext for
+the DLS Kyverno policy, and a single nginx worker to fit its memory limit.
+
 ### Bootstrap keycloak on every start
 
 - **Commit:** 50f19c1, 40ad27e, 8abb06e
