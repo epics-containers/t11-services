@@ -19,9 +19,10 @@ Template paths are relative to `template/` in services-template-helm.
 
 ### Bootstrap keycloak on every start
 
-- **Commit:** 50f19c1 and the commit that adds this entry
+- **Commit:** 50f19c1, 40ad27e and the partial import commit
 - **t11-services:** `services/t11-keycloak/templates/deployment.yaml`,
   `services/t11-keycloak/templates/configmap-bootstrap.yaml`,
+  `services/t11-keycloak/templates/_realm.tpl`,
   `services/t11-keycloak/values.yaml`, `README.md`; removes
   `services/t11-keycloak/templates/job-bootstrap.yaml`
 - **Template:** none
@@ -34,7 +35,9 @@ changed, so a restart left keycloak without its clients and users. A postStart
 hook in the keycloak container now runs `startup.sh` on every start, as
 compose's `post_start` did, and the container is not Ready until it finishes.
 The Job and `bootstrapResources` are gone, which also frees the Job's 1 CPU of
-quota.
+quota. The users and clients are now one keycloak partial import, rendered
+from values by `_realm.tpl`, in place of a JVM-starting kcadm.sh or kcreg.sh
+call per user and client, and the realm it creates is identical.
 
 ### Publish the keycloak admin console
 
