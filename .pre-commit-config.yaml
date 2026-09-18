@@ -17,11 +17,15 @@ repos:
       - id: tech-ui
         name: generate and validate the synoptic and component screens
         language: system
-        # only do this if the techui support submodule has been added
+        # only do this if the techui support submodule has been added.
+        # techui-builder only accepts an absolute opis URL, so techui.yaml has
+        # the placeholder https://xxx-opis; rewrite it to ../ so each link is
+        # relative to /bl11t-synoptic/ and works on any OPI server host.
         entry: |
           bash -c "
             if [[ -f synoptic/techui-support/techui-support.yaml ]]; then
-              uvx --constraints requirements.txt techui-builder build synoptic/techui.yaml
+              uvx --constraints requirements.txt techui-builder build synoptic/techui.yaml &&
+              sed -i 's|https://xxx-opis/|../|g' synoptic/*.bob
             fi"
         files: ^synoptic/
         pass_filenames: false

@@ -2,7 +2,9 @@ beamline:
   domain: t11
   location: bl11t
   desc: t11 simulation beamline
-  url: t11-opis.diamond.ac.uk
+  # placeholder: the tech-ui pre-commit hook rewrites https://xxx-opis/ in
+  # the generated screens to ../, so they carry no host name
+  url: xxx-opis
 
 # Components for techui-builder. Each key matches a symbol widget name in
 # index.bob. `techui-builder build` (the tech-ui pre-commit hook) generates a
