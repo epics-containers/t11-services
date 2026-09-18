@@ -26,10 +26,9 @@ Simulated hardware comes from the IOC instances `bl11t-di-cam-01`,
 Every secret in this stack is a **plain Secret holding a dev value**, not a
 SealedSecret: the sim must deploy without a sealed-secrets controller. Keycloak
 runs `start-dev`, whose H2 database sits on the container filesystem with no
-volume mounted, so a pod restart loses every user and client -- and the
-bootstrap Job does not re-run to repair it (its name is a hash of its
-ConfigMap, so once Complete it stays Complete). Mount a PVC at
-`/opt/keycloak/data` before relying on this beyond a throwaway deploy. Demo users are `alice/alice`
+volume mounted, so a restart loses every user and client. A `postStart` hook
+runs the bootstrap script on every container start to create them again, but
+anything added by hand in the admin console is lost. Demo users are `alice/alice`
 and `bob/bob`, admin is `admin/admin`. **None of this is fit for production.**
 
 ### Known limits

@@ -4,16 +4,37 @@ metadata:
   name: {{ .Release.Name }}-bootstrap
 data:
   # Lifted from dev-environment/daq-services/services/keycloak_config/startup.sh.
-  # Changes for Kubernetes:
-  #  - SERVER comes from $KC_SERVER (compose ran this inside the keycloak
-  #    container via post_start, so localhost worked; here it is a separate Job)
+  # As in compose, it runs inside the keycloak container, from the postStart
+  # hook in deployment.yaml, on every container start. Changes for Kubernetes:
+  #  - wait for /health/ready before the first kcadm.sh call, so that the
+  #    retry loop does not start JVMs while keycloak itself is starting
+  #  - the admin credentials come from the KC_BOOTSTRAP_ADMIN_* variables
   #  - client ids and redirect URIs are templated from values
   startup.sh: |
     #!/bin/bash
     export PATH=$PATH:/opt/keycloak/bin
 
-    export KC_CLI_PASSWORD="${KC_ADMIN_PASSWORD}"
-    SERVER="${KC_SERVER}"
+    # the image has no curl, so ask the management port with bash's /dev/tcp.
+    # Give up after 10 minutes: a failed postStart hook restarts the container
+    for ((i = 0; i < 200; i++)); do
+        if exec 3<>/dev/tcp/localhost/9000 2>/dev/null; then
+            printf 'GET /health/ready HTTP/1.0\r\nHost: localhost\r\n\r\n' >&3
+            if grep -q '"UP"' <&3; then
+                exec 3>&-
+                break
+            fi
+            exec 3>&-
+        fi
+        sleep 3
+    done
+    if ((i == 200)); then
+        echo "keycloak was not ready after 10 minutes"
+        exit 1
+    fi
+
+    KC_ADMIN_USERNAME="${KC_BOOTSTRAP_ADMIN_USERNAME}"
+    export KC_CLI_PASSWORD="${KC_BOOTSTRAP_ADMIN_PASSWORD}"
+    SERVER=http://localhost:8080
     GENERAL_TEMPLATE="/tmp/config/mappers-template.json"
     BEAMLINE_SERVICE_TEMPLATE="/tmp/config/service-account-beamline.json"
     USER_SERVICE_TEMPLATE="/tmp/config/service-account-user.json"
