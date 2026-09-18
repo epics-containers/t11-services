@@ -122,8 +122,24 @@ blueapi:
 
 # Lifted from dev-environment/daq-services/services/blueapi-oauth2-proxy/,
 # with the issuer and upstream pointed in-cluster.
+#
+# The blueapi web UI is published through this proxy's LoadBalancer, at
+# http://<external IP>/docs; scripts/urls.sh in t11-deployment prints the
+# address. A browser cannot resolve the in-cluster names, and the external IPs
+# change when a Service is recreated, so the browser only ever talks to this
+# one IP:
+#  - /realms/ and /resources/ go to keycloak without a login, with the
+#    browser's Host header, so that keycloak (with no fixed hostname) renders
+#    its login pages for this IP
+#  - loginURL is relative, so the browser logs in through this IP too
+#  - the proxy redeems the code in-cluster, at t11-keycloak:8080, so the
+#    tokens' issuer is t11-keycloak:8080, as blueapi and this proxy expect
+#  - the t11-blueapi client accepts the relative redirect URI
+#    /oauth2/callback, which keycloak resolves against the request's host
 oauth2:
   fullnameOverride: t11-blueapi-oauth2
+  service:
+    type: LoadBalancer
   proxyVarsAsSecrets: false
   # the chart sets no resources, so the namespace LimitRange default (1 CPU at
   # DLS) would apply and count against the namespace CPU quota
@@ -155,7 +171,9 @@ oauth2:
       email_domains = [ "*" ]
       skip_auth_routes=[
       "GET=^/config/oidc",
-      "GET=^/healthz"
+      "GET=^/healthz",
+      "^/realms/",
+      "^/resources/"
       ]
       whitelist_domains=["t11-keycloak:8080"]
   ingress:
@@ -169,12 +187,26 @@ oauth2:
           - id: t11-blueapi
             path: /
             uri: http://t11-blueapi
+          # keycloak's browser endpoints, for the login pages
+          - id: t11-keycloak-realms
+            path: /realms/
+            uri: http://t11-keycloak:8080
+          - id: t11-keycloak-resources
+            path: /resources/
+            uri: http://t11-keycloak:8080
       providers:
         - provider: oidc
           id: t11-keycloak
           clientID: t11-blueapi
           clientSecret: ${OAUTH2_PROXY_CLIENT_SECRET}
+          # discovery would replace these with keycloak's in-cluster URLs,
+          # which a browser cannot reach
+          loginURL: /realms/master/protocol/openid-connect/auth
+          redeemURL: http://t11-keycloak:8080/realms/master/protocol/openid-connect/token
+          profileURL: http://t11-keycloak:8080/realms/master/protocol/openid-connect/userinfo
           oidcConfig:
+            skipDiscovery: true
+            jwksURL: http://t11-keycloak:8080/realms/master/protocol/openid-connect/certs
             insecureAllowUnverifiedEmail: true
             insecureSkipNonce: true
             emailClaim: sub
