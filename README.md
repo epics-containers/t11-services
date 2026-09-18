@@ -34,12 +34,14 @@ and `bob/bob`, admin is `admin/admin`. **None of this is fit for production.**
 
 ### Known limits
 
-- **Interactive login does not work from outside the cluster.** Keycloak issues
-  tokens for `http://t11-keycloak:8080`, which only resolves inside the
+- **Interactive login does not work from outside the cluster.** The clients
+  reach Keycloak at `http://t11-keycloak:8080`, which only resolves inside the
   namespace. Service-to-service auth works; a browser on a workstation cannot
-  complete the redirect flow. Add an Ingress and set
+  complete the blueapi or tiled redirect flow. Add an Ingress and set
   `t11-keycloak.hostname` plus the `redirect` values to that hostname if you
-  need the tiled or blueapi UIs.
+  need the tiled or blueapi UIs. The Keycloak admin console does work from a
+  workstation, at `http://<external IP>:8080/admin`, because the Service is a
+  LoadBalancer and Keycloak takes its hostname from each request.
 - **`t11-blueapi` needs `dodal.beamlines.t11`**, which does not exist upstream
   yet. The module is drafted at [`dodal/t11.py`](dodal/t11.py) and must be
   merged into DiamondLightSource/dodal and released before blueapi will start.

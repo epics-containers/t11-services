@@ -30,8 +30,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-admin
                   key: password
+            {{- with .Values.hostname }}
             - name: KC_HOSTNAME
-              value: {{ .Values.hostname | quote }}
+              value: {{ . | quote }}
+            {{- end }}
             - name: KC_HTTP_ENABLED
               value: "true"
             - name: KC_HEALTH_ENABLED
