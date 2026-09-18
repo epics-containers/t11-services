@@ -173,5 +173,19 @@ in t11-blueapi */ -}}
     "protocolMappers" (include "t11-keycloak.userServiceMappers" (list (print $P "-blueapi") .) | fromJsonArray)) -}}
 {{- end -}}
 
+{{- /* a partial import does not create the user behind a service account,
+which the admin API makes when it enables one. Without it the client
+credentials grant fails ("The associated service account for the client does
+not exist"). Name them, with the default roles the admin API gives them */ -}}
+{{- range $clients -}}
+{{- if .serviceAccountsEnabled -}}
+{{- $users = append $users (dict
+    "username" (print "service-account-" .clientId | lower)
+    "enabled" true
+    "serviceAccountClientId" .clientId
+    "realmRoles" (list (print "default-roles-" $.Values.realm))) -}}
+{{- end -}}
+{{- end -}}
+
 {{- dict "ifResourceExists" "SKIP" "users" $users "clients" $clients | toPrettyJson -}}
 {{- end }}
