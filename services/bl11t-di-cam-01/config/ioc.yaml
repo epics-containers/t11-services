@@ -31,6 +31,7 @@ entities:
       dbpf BL11T-DI-CAM-01:PROC:EnableCallbacks 1
       dbpf BL11T-DI-CAM-01:ROI:EnableCallbacks 1
       dbpf BL11T-DI-CAM-01:PVA:EnableCallbacks 1
+      dbpf BL11T-DI-CAM-01:STAT:EnableCallbacks 1
       dbpf BL11T-DI-CAM-01:DRV:Acquire 1
 
   - type: ADCore.NDROI
