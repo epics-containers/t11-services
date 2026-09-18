@@ -17,6 +17,20 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Keep keycloak's database on a PVC
+
+- **Commit:** dd62f8b
+- **t11-services:** `services/t11-keycloak/templates/pvc.yaml`,
+  `services/t11-keycloak/templates/deployment.yaml`,
+  `services/t11-keycloak/values.yaml`, `README.md`
+- **Template:** none
+- **Promote:** no
+- **Done:** [ ]
+
+t11 runs its own keycloak, which real beamlines do not. Its H2 database was
+on the container filesystem, so every restart made new signing keys and tiled,
+which caches keys for an hour, rejected every token until it was restarted.
+
 ### Use DLS names for the camera PVs
 
 - **Commit:** 6f1cb55
