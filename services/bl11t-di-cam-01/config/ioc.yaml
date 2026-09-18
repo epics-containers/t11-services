@@ -16,9 +16,9 @@ entities:
     P: "BL11T-DI-CAM-01:"
 
   - type: ADSimDetector.simDetector
-    PORT: DET.DET
+    PORT: CAM.DRV
     P: BL11T-DI-CAM-01
-    R: ":DET:"
+    R: ":DRV:"
     # DATATYPE:0 = Int8 - TODO add an enum to the support yaml
     DATATYPE: 0
     WIDTH: 1024
@@ -26,78 +26,79 @@ entities:
 
   - type: epics.PostStartupCommand
     command: |
-      dbpf BL11T-DI-CAM-01:DET:AcquireTime 0.1
+      dbpf BL11T-DI-CAM-01:DRV:AcquireTime 0.1
       dbpf BL11T-DI-CAM-01:ARR:EnableCallbacks 1
       dbpf BL11T-DI-CAM-01:PROC:EnableCallbacks 1
       dbpf BL11T-DI-CAM-01:ROI:EnableCallbacks 1
       dbpf BL11T-DI-CAM-01:PVA:EnableCallbacks 1
-      dbpf BL11T-DI-CAM-01:DET:Acquire 1
+      dbpf BL11T-DI-CAM-01:STAT:EnableCallbacks 1
+      dbpf BL11T-DI-CAM-01:DRV:Acquire 1
 
   - type: ADCore.NDROI
-    PORT: DET.ROI
+    PORT: CAM.ROI
     P: BL11T-DI-CAM-01
     R: ":ROI:"
-    NDARRAY_PORT: DET.DET
+    NDARRAY_PORT: CAM.DRV
 
   - type: ADCore.NDProcess
-    PORT: DET.PROC
+    PORT: CAM.PROC
     P: BL11T-DI-CAM-01
     R: ":PROC:"
-    NDARRAY_PORT: DET.ROI
+    NDARRAY_PORT: CAM.ROI
 
   - type: ADCore.NDPvxsPlugin
-    PORT: DET.PVA
-    PVNAME: BL11T-DI-CAM-01:PVA:OUTPUT
+    PORT: CAM.PVA
+    PVNAME: BL11T-DI-CAM-01:PVA:ARRAY
     P: BL11T-DI-CAM-01
     R: ":PVA:"
-    NDARRAY_PORT: DET.DET
+    NDARRAY_PORT: CAM.DRV
 
   - type: ADCore.NDStdArrays
-    PORT: DET.ARR
+    PORT: CAM.ARR
     P: BL11T-DI-CAM-01
     R: ":ARR:"
-    NDARRAY_PORT: DET.PROC
+    NDARRAY_PORT: CAM.PROC
     TYPE: Int8
     NELEMENTS: 1048576
     FTVL: UCHAR
 
   - type: ADCore.NDStats
-    PORT: DET.STAT
+    PORT: CAM.STAT
     P: BL11T-DI-CAM-01
     R: ":STAT:"
-    NDARRAY_PORT: DET.DET
+    NDARRAY_PORT: CAM.DRV
     XSIZE: 1024
     YSIZE: 1024
     HIST_SIZE: 20
 
   - type: ADCore.NDFileHDF5
-    PORT: DET.HDF
+    PORT: CAM.HDF
     P: BL11T-DI-CAM-01
     R: ":HDF5:"
-    NDARRAY_PORT: DET.PROC
+    NDARRAY_PORT: CAM.PROC
 
   - type: ADCore.NDFileTIFF
-    PORT: DET.TIFF
+    PORT: CAM.TIFF
     P: BL11T-DI-CAM-01
     R: ":TIFF:"
-    NDARRAY_PORT: DET.PROC
+    NDARRAY_PORT: CAM.PROC
 
   - type: ADCore.NDOverlay
-    PORT: DET.OVER
+    PORT: CAM.OVER
     P: BL11T-DI-CAM-01
     R: ":OVER:"
-    NDARRAY_PORT: DET.PROC
+    NDARRAY_PORT: CAM.PROC
     NOverlays: 4
 
   - type: ADCore.NDROIStat
-    PORT: DET.ROISTAT
+    PORT: CAM.ROISTAT
     P: BL11T-DI-CAM-01
     R: ":ROISTAT:"
-    NDARRAY_PORT: DET.PROC
+    NDARRAY_PORT: CAM.PROC
     MAX_ROIS: 4
 
   - type: ADCore.NDFileNetCDF
-    PORT: DET.CDF
+    PORT: CAM.CDF
     P: BL11T-DI-CAM-01
     R: ":NCDF:"
-    NDARRAY_PORT: DET.DET
+    NDARRAY_PORT: CAM.DRV
