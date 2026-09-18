@@ -31,6 +31,14 @@ tiled:
       cpu: 500m
       memory: 1Gi
 
+  # tiled takes about 20s to start on a quiet node and longer when the whole
+  # beamline starts at once. The chart's liveness probe has no initial delay
+  # and restarts it after about 30s, which on a fresh deploy became a crash
+  # loop with minutes of back-off. Probe liveness only after 2 minutes; the
+  # readiness probe still reports tiled as soon as it serves
+  livenessProbe:
+    initialDelaySeconds: 120
+
   extraEnvVars:
     - name: PYTHONPATH
       value: /deploy/
