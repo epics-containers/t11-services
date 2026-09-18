@@ -13,6 +13,9 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      annotations:
+        # roll the Pod, and so run the bootstrap again, when the script changes
+        checksum/bootstrap: {{ include (print $.Template.BasePath "/configmap-bootstrap.yaml") . | sha256sum }}
     spec:
       containers:
         - name: keycloak
@@ -30,8 +33,10 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}-admin
                   key: password
+            {{- with .Values.hostname }}
             - name: KC_HOSTNAME
-              value: {{ .Values.hostname | quote }}
+              value: {{ . | quote }}
+            {{- end }}
             - name: KC_HTTP_ENABLED
               value: "true"
             - name: KC_HEALTH_ENABLED
@@ -43,6 +48,20 @@ spec:
             - name: management
               containerPort: 9000
               protocol: TCP
+          # The H2 database lives on the container filesystem, so every
+          # container start begins with an empty realm. Configure it again
+          # each time, as compose's post_start did. The container is not
+          # Running, and so not Ready, until the hook exits, so clients never
+          # see a realm without its clients and users. A hook that fails
+          # restarts the container. Read its output with
+          #   kubectl exec deploy/t11-keycloak -- cat /tmp/bootstrap.log
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - bash
+                  - -c
+                  - bash /tmp/config/startup.sh >/tmp/bootstrap.log 2>&1
           startupProbe:
             httpGet:
               path: /health/ready
@@ -56,3 +75,10 @@ spec:
               port: management
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /tmp/config
+      volumes:
+        - name: bootstrap
+          configMap:
+            name: {{ .Release.Name }}-bootstrap

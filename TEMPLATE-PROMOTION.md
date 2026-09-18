@@ -17,6 +17,44 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Bootstrap keycloak on every start
+
+- **Commit:** 50f19c1, 40ad27e, 8abb06e
+- **t11-services:** `services/t11-keycloak/templates/deployment.yaml`,
+  `services/t11-keycloak/templates/configmap-bootstrap.yaml`,
+  `services/t11-keycloak/templates/_realm.tpl`,
+  `services/t11-keycloak/values.yaml`, `README.md`; removes
+  `services/t11-keycloak/templates/job-bootstrap.yaml`
+- **Template:** none
+- **Promote:** no. The template has no keycloak.
+- **Done:** n/a
+
+Keycloak's H2 database lives on the container filesystem, so every restart
+starts with an empty realm. The bootstrap Job only ran when its ConfigMap
+changed, so a restart left keycloak without its clients and users. A postStart
+hook in the keycloak container now runs `startup.sh` on every start, as
+compose's `post_start` did, and the container is not Ready until it finishes.
+The Job and `bootstrapResources` are gone, which also frees the Job's 1 CPU of
+quota. The users and clients are now one keycloak partial import, rendered
+from values by `_realm.tpl`, in place of a JVM-starting kcadm.sh or kcreg.sh
+call per user and client, and the realm it creates is identical.
+
+### Publish the keycloak admin console
+
+- **Commit:** 77b494d
+- **t11-services:** `services/t11-keycloak/values.yaml`,
+  `services/t11-keycloak/templates/deployment.yaml`, `README.md`
+- **Template:** none
+- **Promote:** no. The template has no keycloak; t11 runs its own only to
+  simulate the DLS central one.
+- **Done:** n/a
+
+The t11-keycloak Service is now a LoadBalancer, and `hostname` defaults to
+empty, which leaves `KC_HOSTNAME` unset. start-dev then takes the hostname
+from each request, so the admin console works at
+`http://<external IP>:8080/admin`. The in-cluster clients all call
+`http://t11-keycloak:8080`, so their token issuer is unchanged.
+
 ### Bump ioc-instance and ioc-group to 5.9.0
 
 - **Commit:** 3b9c526

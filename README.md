@@ -26,20 +26,21 @@ Simulated hardware comes from the IOC instances `bl11t-di-cam-01`,
 Every secret in this stack is a **plain Secret holding a dev value**, not a
 SealedSecret: the sim must deploy without a sealed-secrets controller. Keycloak
 runs `start-dev`, whose H2 database sits on the container filesystem with no
-volume mounted, so a pod restart loses every user and client -- and the
-bootstrap Job does not re-run to repair it (its name is a hash of its
-ConfigMap, so once Complete it stays Complete). Mount a PVC at
-`/opt/keycloak/data` before relying on this beyond a throwaway deploy. Demo users are `alice/alice`
+volume mounted, so a restart loses every user and client. A `postStart` hook
+runs the bootstrap script on every container start to create them again, but
+anything added by hand in the admin console is lost. Demo users are `alice/alice`
 and `bob/bob`, admin is `admin/admin`. **None of this is fit for production.**
 
 ### Known limits
 
-- **Interactive login does not work from outside the cluster.** Keycloak issues
-  tokens for `http://t11-keycloak:8080`, which only resolves inside the
+- **Interactive login does not work from outside the cluster.** The clients
+  reach Keycloak at `http://t11-keycloak:8080`, which only resolves inside the
   namespace. Service-to-service auth works; a browser on a workstation cannot
-  complete the redirect flow. Add an Ingress and set
+  complete the blueapi or tiled redirect flow. Add an Ingress and set
   `t11-keycloak.hostname` plus the `redirect` values to that hostname if you
-  need the tiled or blueapi UIs.
+  need the tiled or blueapi UIs. The Keycloak admin console does work from a
+  workstation, at `http://<external IP>:8080/admin`, because the Service is a
+  LoadBalancer and Keycloak takes its hostname from each request.
 - **`t11-blueapi` needs `dodal.beamlines.t11`**, which does not exist upstream
   yet. The module is drafted at [`dodal/t11.py`](dodal/t11.py) and must be
   merged into DiamondLightSource/dodal and released before blueapi will start.
