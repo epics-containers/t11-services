@@ -136,10 +136,10 @@ default scopes drops the default optional scopes, so name those too */ -}}
     "credentials" (list (dict "type" "password" "value" (regexReplaceAll "^.*:" . "") "temporary" false))) -}}
 {{- end -}}
 
-{{- /* t11-blueapi has no rootUrl, so that keycloak resolves the relative
-redirect URI against the host of each request: a browser that reaches keycloak
-through the oauth2-proxy LoadBalancer may return to that IP. See the oauth2
-values in t11-blueapi */ -}}
+{{- /* t11-blueapi accepts any redirect URI, because a browser logs in
+through the oauth2-proxy LoadBalancer, whose IP changes. An open redirect is
+fine in this dummy keycloak, and never in a real one. See the oauth2 values
+in t11-blueapi */ -}}
 {{- $clients := list
   (dict "clientId" (print $P "-cli-blueapi")
     "standardFlowEnabled" false "publicClient" true
@@ -147,7 +147,8 @@ values in t11-blueapi */ -}}
     "protocolMappers" (include "t11-keycloak.generalMappers" (print $P "-blueapi") | fromJsonArray))
   (dict "clientId" (print $P "-blueapi")
     "standardFlowEnabled" true "secret" "blueapi-secret"
-    "redirectUris" (list (print .Values.redirect.blueapi "/*") "/oauth2/callback") "attributes" $webAttributes
+    "rootUrl" .Values.redirect.blueapi
+    "redirectUris" (list (print .Values.redirect.blueapi "/*") "*") "attributes" $webAttributes
     "protocolMappers" (include "t11-keycloak.generalMappers" (print $P "-blueapi") | fromJsonArray))
   (dict "clientId" "tiled"
     "standardFlowEnabled" true "secret" "tiled-secret"
