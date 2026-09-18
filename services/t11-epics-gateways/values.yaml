@@ -10,6 +10,10 @@ epics-gateways:
 
   hostNetwork: false
 
+  # restart the gateways whenever an IOC in the namespace becomes Ready after
+  # they started, so they find IOCs that started later or were restarted
+  restartOnNewIocs: true
+
   # the epics-gateways image is built for amd64 only
   nodeSelector:
     kubernetes.io/arch: amd64
