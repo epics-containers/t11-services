@@ -34,13 +34,17 @@ and `bob/bob`, admin is `admin/admin`. **None of this is fit for production.**
 ### Known limits
 
 - **Browser logins work only for blueapi.** The blueapi web UI is at
-  `http://<oauth2-proxy external IP>/docs`, and a browser logs in there as
+  `http://127.0.0.1:18080/docs`, and a browser logs in there as
   `alice/alice`. The oauth2-proxy Pod serves Keycloak's login pages through
   an nginx sidecar, which calls Keycloak as `t11-keycloak:8080` so that the
   token issuer is right, and rewrites Keycloak's absolute URLs into relative
   ones. The tiled UI has no such proxy, so its login still needs an Ingress.
-  The Keycloak admin console works at `http://<keycloak external IP>:8080/admin`.
-  `scripts/urls.sh` in t11-deployment prints both addresses.
+  The Keycloak admin console works at `http://127.0.0.1:8080/admin`.
+  Run `scripts/connect.sh <namespace>` from t11-deployment and leave it
+  running while using these URLs or the OPI server at `http://127.0.0.1:18081`.
+  These three web Services are ClusterIP; only the EPICS gateway retains a
+  LoadBalancer, consuming one floating IP per beamline at DLS. CA/PVA and
+  camera images continue to use that gateway directly.
 - **`t11-blueapi` needs `dodal.beamlines.t11`**, which is not in a dodal
   release yet. The worker installs dodal from its `t11` branch until it is;
   [`dodal/t11.py`](dodal/t11.py) is the reference copy of that module.

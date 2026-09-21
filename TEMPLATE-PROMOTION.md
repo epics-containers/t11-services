@@ -17,6 +17,20 @@ Template paths are relative to `template/` in services-template-helm.
 
 ## Log
 
+### Use one floating IP per test beamline
+
+- **t11-services:** `services/t11-blueapi/values.yaml`,
+  `services/t11-keycloak/values.yaml`, `services/t11-epics-opis/values.yaml`
+- **Template:** none
+- **Promote:** no
+- **Done:** [ ]
+
+The standalone test beamline exposes web services through local kubectl
+port-forwards managed by t11-deployment. Only the EPICS gateway retains its
+LoadBalancer, so CA/PVA camera streams bypass the Kubernetes API and each
+DLS test beamline consumes one floating IP. Production ingress and identity
+arrangements are unchanged.
+
 ### Update the gateways to 2026.9.4
 
 - **Commit:** 1a6f882
