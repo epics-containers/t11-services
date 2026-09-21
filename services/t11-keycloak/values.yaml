@@ -22,11 +22,10 @@ image:
   tag: "26.4"
   pullPolicy: IfNotPresent
 
-# LoadBalancer so that the admin console is reachable from a workstation, at
-# http://<external IP>:8080/admin. scripts/urls.sh in t11-deployment prints
-# the address.
+# scripts/connect.sh in t11-deployment forwards this to localhost:8080.
+# Only the EPICS gateway needs a LoadBalancer and floating IP.
 service:
-  type: LoadBalancer
+  type: ClusterIP
   port: 8080
 
 # Admin credentials for the sim. Dev values on purpose -- see the Secret note
@@ -38,9 +37,9 @@ admin:
 # The issuer URL keycloak stamps into tokens. It must be resolvable by every
 # consumer. Empty, keycloak (start-dev) takes the hostname from each request:
 # the in-cluster clients all call http://t11-keycloak:8080, so their tokens
-# carry that issuer, and a browser at the external IP gets working admin
-# console URLs. A browser still cannot complete the blueapi or tiled login
-# flows, which redirect to t11-keycloak:8080 -- see README. Set a URL here
+# carry that issuer, and a browser at the forwarded localhost port gets working
+# admin console URLs. Blueapi browser login uses its Keycloak proxy sidecar;
+# Tiled browser login still needs additional routing. Set a URL here
 # (e.g. an ingress hostname) to pin the issuer for every caller.
 hostname: ""
 

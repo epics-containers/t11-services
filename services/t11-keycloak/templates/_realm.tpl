@@ -142,7 +142,7 @@ requires, so name them */ -}}
 {{- end -}}
 
 {{- /* t11-blueapi accepts any redirect URI, because a browser logs in
-through the oauth2-proxy LoadBalancer, whose IP changes. An open redirect is
+through a local port-forward to oauth2-proxy. An open redirect is
 fine in this dummy keycloak, and never in a real one. See the oauth2 values
 in t11-blueapi */ -}}
 {{- $clients := list

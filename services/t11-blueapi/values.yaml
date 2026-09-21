@@ -119,24 +119,22 @@ blueapi:
 # Lifted from dev-environment/daq-services/services/blueapi-oauth2-proxy/,
 # with the issuer and upstream pointed in-cluster.
 #
-# The blueapi web UI is published through this proxy's LoadBalancer, at
-# http://<external IP>/docs; scripts/urls.sh in t11-deployment prints the
-# address. A browser cannot resolve the in-cluster names, and the external IPs
-# change when a Service is recreated, so the browser only ever talks to this
-# one IP:
+# The blueapi web UI is reached through scripts/connect.sh in t11-deployment,
+# at http://127.0.0.1:18080/docs. A browser cannot resolve the in-cluster names,
+# so login stays on the forwarded origin:
 #  - /realms/ and /resources/ go, without a login, to an nginx sidecar in
 #    front of keycloak (templates/keycloak-proxy.yaml). It calls keycloak as
 #    t11-keycloak:8080, so every token's issuer is
 #    http://t11-keycloak:8080/realms/master, as blueapi and this proxy
 #    require. It rewrites the absolute t11-keycloak:8080 URLs in keycloak's
-#    responses into relative ones, so the browser stays on this IP
-#  - loginURL is relative, so the browser logs in through this IP too
+#    responses into relative ones, so the browser stays on this origin
+#  - loginURL is relative, so the browser logs in through this origin too
 #  - the t11-blueapi client accepts any redirect URI, so keycloak allows the
-#    callback to this IP
+#    callback to the forwarded origin
 oauth2:
   fullnameOverride: t11-blueapi-oauth2
   service:
-    type: LoadBalancer
+    type: ClusterIP
   extraContainers:
     - name: keycloak-proxy
       image: nginxinc/nginx-unprivileged:1.31-alpine
