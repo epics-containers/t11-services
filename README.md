@@ -4,6 +4,10 @@ This repository holds the a definition of t11 IOC Instances and services. Each s
 
 ## Standalone DAQ stack
 
+The [template comparison](https://epics-containers.github.io/t11-deployment/reference/template-differences.html)
+records differences from the Copier templates, promotion assessments and
+standalone test-beamline settings.
+
 This repo is a **self-contained simulation**: everything it needs runs inside
 the namespace. Unlike a real beamline it does not use `identity.diamond.ac.uk`,
 the central authz bundler, `numtracker-staging.diamond.ac.uk` or
