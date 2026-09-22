@@ -1,29 +1,19 @@
-# use nginx for publishing opi files over http
-image: nginx:1.25.4
-# nginx serving static OPI files is nearly idle. The upstream chart hardcodes
-# 600m, which counts against a namespace CPU quota
-resources:
-  requests:
-    memory: 16Mi
-    cpu: 10m
-  limits:
-    memory: 64Mi
-    cpu: 100m
-# Short name for this collection of services
-domain:
-# location where these IOCs and services will run
-location:
+# values for the upstream epics-opis chart, namespaced under its dependency
+# name (see Chart.yaml)
+epics-opis:
+  # nginx serving static OPI files is nearly idle. The upstream chart's
+  # default resources (200m/600m limits) are far above what's needed and
+  # count against a personal namespace's CPU quota
+  resources:
+    requests:
+      memory: 16Mi
+      cpu: 10m
+    limits:
+      memory: 64Mi
+      cpu: 100m
 
-service:
-  # LoadBalancer, ClusterIP or NodePort
-  type: ClusterIP
-  # scripts/connect.sh in t11-deployment forwards this Service to localhost.
-  # nginx listens on 80 in the Pod.
-  port: 80
-  # pin a specific address when the LoadBalancer provider supports it
-  loadBalancerIP:
-  # route traffic arriving on these node/external addresses to the service
-  # (works without any LoadBalancer provider, typically with type: ClusterIP)
-  externalIPs: []
-  #  - 192.168.1.100
-  annotations: {}
+  service:
+    # LoadBalancer, ClusterIP or NodePort. scripts/connect.sh in
+    # t11-deployment forwards this Service to localhost; ClusterIP keeps
+    # one floating IP per test beamline (see t11-services#29).
+    type: ClusterIP

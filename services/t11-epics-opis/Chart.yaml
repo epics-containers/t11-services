@@ -1,11 +1,18 @@
-# Local copy of epics-opis 5.6.1 from oci://ghcr.io/epics-containers/charts
-# with added Service networking values (service.type / port / externalIPs /
-# loadBalancerIP) and a resources value, and with the unused https (443)
-# Service port removed.
-# See https://github.com/epics-containers/ec-helm-charts/issues/117
+# Consumes the upstream epics-opis chart. Depends on the
+# service.type/loadBalancerIP/externalIPs/annotations values and the
+# containerPort fix from ec-helm-charts#117, released as 5.10.0. Until that
+# version is tagged and pushed, `helm dependency update` will not resolve
+# this chart - verified locally with a temporary file:// dependency against
+# the ec-helm-charts feat/117-opis-service worktree instead (see
+# t11-deployment issue-triage.reports/impl-117.md).
 apiVersion: v2
 name: epics-opis
 
-version: 5.6.1-local.3
+version: 1.0.0
 
 type: application
+
+dependencies:
+  - name: epics-opis
+    version: "5.10.0"
+    repository: "oci://ghcr.io/epics-containers/charts"
