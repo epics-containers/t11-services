@@ -1,3 +1,3 @@
 uv
-ibek>=4.8.2b1,<5
+ibek>=4.8.2,<5
 techui-builder>=0.7.7

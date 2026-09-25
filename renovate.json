@@ -30,7 +30,7 @@
         "/services/.*/runtime-lock\\.yaml$/"
       ],
       "matchStrings": [
-        "version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?\\s*[\\r\\n]+source:\\s*(?:https?://)?(?:github\\.com/)?(?<depName>[^@\\s\"']+/[^@\\s\"']+?)(?:@[^\\s\"']+)?\\s*$"
+        "version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?\\s*[\\r\\n]+[ \\t]*source:\\s*(?:https?://)?(?:github\\.com/)?(?<depName>[^@\\s\"']+/[^@\\s\"']+?)(?:@[^\\s\"']+)?\\s*$"
       ],
       "datasourceTemplate": "github-releases"
     }
