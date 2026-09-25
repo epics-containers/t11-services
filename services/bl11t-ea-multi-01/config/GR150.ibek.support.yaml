@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://github.com/epics-containers/ibek/releases/download/4.8.0-beta.2/ibek.support.schema.json
+
+# Imported from DLS production support module: GR150 2-5-5
+# Source: /dls_sw/prod/R3.14.12.7/support/GR150/2-5-5
+# Pristine copy of the StreamDevice protocol + EPICS db/template from that release.
+# To check for updates: diff this pattern's files against that path, or against the
+# newest /dls_sw/prod/*/support/GR150/ release.
+
+module: GR150
+
+entity_models:
+  - name: gr150
+    description: |-
+      Support for Grant GR150 chiller.
+    parameters:
+      P:
+        type: str
+        description: |-
+          Device prefix
+      bus:
+        type: str
+        description: |-
+          Asyn port name
+      DISABLE:
+        type: int
+        description: |-
+          If 1 then disable the comms on startup
+        default: 0
+      tempdesc:
+        type: str
+        description: |-
+          Optional.  Description in TEMPERATURE record DESC field.  Defaults to "Chiller water temp"
+        default: "Chiller water temperature"
+    databases:
+      - file: gr150.template
+        args:
+          .*:

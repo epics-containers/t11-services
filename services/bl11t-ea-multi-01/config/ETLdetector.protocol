@@ -1,0 +1,141 @@
+# Stream Device Protocol for the ETL detector used on I11 and I15
+# Comments extracted from instruction manual
+# 
+# Version 1.0 - Tom Cobb - 04/07/06: Initial version
+# Version 1.1 - Tom Cobb - 07/05/08: Added local echo, 8516 must be in mode 1 rather than 2
+
+locktimeout = 5000;
+terminator   = CR;
+replytimeout = 100;
+readtimeout  = 100;
+extrainput   = Ignore;
+
+# $1 = Module address
+# $2 = register / channel number
+# In this table aaa is the address (three ASCII characters).  The permitted range for module addresses is 000 to EFF but is restricted to 128 addresses on one unbuffered section of RS485 bus.
+# Address FFF is used to broadcast a command to all modules at the same time.
+
+
+# Get HV control voltage
+# send: aaav<cr>
+# module replies: aaavddd<cr> (ddd = control voltage in mV (range 000 to FA0))
+# This returns the contents of the control register not the actual HV voltage (see read A-D for that).
+#############################################################################
+getHVCtrl { out "%(\$1:ADDR.VAL)03Xv"; in "%(\$1:ADDR.VAL)03Xv"; in "%(\$1:ADDR.VAL)03Xv%03X"; }
+
+
+# Set HV control voltage
+# send: aaaVddd<cr> (ddd = HV control setting in mV, scale is 2V control = 1kV HV, permitted range is 000 to FA0 or pmt limit )
+# Setting the HV above 2000V (FA0) will cause damage to the HV circuit.  The pmt maximum voltage rating may restrict this limit further.
+#############################################################################
+setHVCtrl { out "%(\$1:ADDR.VAL)03XV%03X"; in "%(\$1:ADDR.VAL)03XV%03X"; in "%(\$1:ADDR.VAL)03XV%03X"; @init { getHVCtrl; } }
+
+
+# Get reference voltage
+# send: aaai<cr>
+# module replies: aaaiddd<cr> (ddd = ref voltage in mV, range 000 to FFF)
+# This is the control register contents not the actual reference voltage
+#############################################################################
+getRefV { out "%(\$1:ADDR.VAL)03Xi"; in "%(\$1:ADDR.VAL)03Xi"; in "%(\$1:ADDR.VAL)03Xi%03X"; }
+
+
+# Set reference voltage
+# send: aaaIddd<cr> (ddd = reference voltage setting in mV, range 000 to FFF but usually set to FF8)
+# This provides the reference for the A-D.  It can be used to correct scaling tolerance.  It defaults to FF8 at power up (4088mV)
+#############################################################################
+setRefV { out "%(\$1:ADDR.VAL)03XI%03X"; in "%(\$1:ADDR.VAL)03XI%03X"; in "%(\$1:ADDR.VAL)03XI%03X"; @init { getRefV; } }
+
+
+# Read ADC Value
+# send: aaarn<cr> (reads AD channel n, range for n is 0 to 3)
+# module replies: aaarnddd<cr> (ddd = A-D voltage in mV, range 000 to FFF)
+# There are 4 channels
+#   CH0 = unused
+#   CH1 = HV control voltage (2V=1kV)
+#   CH2 = HV generator supply current
+#   CH3 = Actual HV output voltage (2V=1kV)
+#############################################################################
+getADC { out "%(\$1:ADDR.VAL)03Xr\$2"; in "%(\$1:ADDR.VAL)03Xr\$2"; in "%(\$1:ADDR.VAL)03Xr\$2%03X"; }
+
+
+# Save current HV voltage to preset register n
+# send: aaa=n<cr> (use aaa=FFF to save all modules at once)
+# Particularly useful with broadcast to save the all modules current HV settings before power down. If saved to preset register 0, system will restart with the same HV settings.
+#############################################################################
+setHVPresetFromCtrl { out "%(\$1:ADDR.VAL)03X=\$2"; in "%(\$1:ADDR.VAL)03X=\$2"; in "%(\$1:ADDR.VAL)03X=\$2"; }
+
+
+# Save current threshold voltages to preset
+# send: aaa#D=<cr> (Save current upper and lower threshold settings of signal processing board to register )
+# There is only one thresholds preset register per module.  System will default to register contents on power up.
+#############################################################################
+saveLimits { out "\r%(\$1:ADDR.VAL)03X\#D="; in ""; in "%(\$1:ADDR.VAL)03X\#D="; in "%(\$1:ADDR.VAL)03X\#DE0"; }
+
+
+# Get upper threshold
+# send: aaa#Du<cr>
+# module replies: aaa#Duddd<cr> (ddd = upper threshold voltage in mV (range 000 to FFF))
+# This is the setting value stored in the control register not a measure of the actual voltage
+#############################################################################
+getUpperLimit { out "\r%(\$1:ADDR.VAL)03X\#Du"; in ""; in "%(\$1:ADDR.VAL)03X\#Du"; in "%(\$1:ADDR.VAL)03X\#Du%03X"; }
+
+
+# Set upper threshold
+# send: aaa#DUddd<cr> (ddd = setting for upper threshold in mV,(range = 0 to FFF))
+# The PC must perform the translation from keV to mV using the calibration data provided for that module
+#############################################################################
+setUpperLimit { out "\r%(\$1:ADDR.VAL)03X\#DU%03X"; in ""; in "%(\$1:ADDR.VAL)03X\#DU%03X"; in "%(\$1:ADDR.VAL)03X\#DU%03X"; @init { getUpperLimit; } }
+
+
+# Get lower threshold
+# send: aaa#Dl<cr>
+# module replies: aaa#Dlddd<cr> (ddd = lower threshold voltage in mV,(range 000 to FFF))
+# This is the setting value stored in the control register not a measure of the actual voltage
+#############################################################################
+getLowerLimit { out "\r%(\$1:ADDR.VAL)03X\#Dl"; in ""; in "%(\$1:ADDR.VAL)03X\#Dl"; in "%(\$1:ADDR.VAL)03X\#Dl%03X"; }
+
+
+# Set lower threshold
+# send: aaa#DLddd<cr> (ddd = setting for upper threshold in mV, (range = 0 to FFF))
+# The PC must perform the translation from keV to mV using the calibration data provided for that module
+#############################################################################
+setLowerLimit { out "\r%(\$1:ADDR.VAL)03X\#DL%03X"; in ""; in "%(\$1:ADDR.VAL)03X\#DL%03X"; in "%(\$1:ADDR.VAL)03X\#DL%03X"; @init { getLowerLimit; } }
+
+
+# Set Detector Board's address
+# send: aaa!AAA<cr> 
+# sets the address of the detector board at address aaa to the new value AAA
+#############################################################################
+setDetBoardAddr { out "%(\$1:ADDR.VAL)03X!%03X"; in "%(\$1:ADDR.VAL)03X!%03X"; in "%(\$1:ADDR.VAL)03X!%03X"; }
+
+
+# Set Signal Processing Board’s address
+# send: aaa#D!AAA<cr> 
+# sets the address of the signal processing board at address aaa to new address AAA
+# Typically the broadcast address (aaa=FFF) is used with this command so that it will write to the module irrespective of its current address.  In that case only one module should be attached to the bus !
+#############################################################################
+setSignalBoardAddr { out "\r%(\$1:ADDR.VAL)03X\#D!%03X"; in ""; in "%(\$1:ADDR.VAL)03X\#D!%03X"; in "%(\$1:ADDR.VAL)03X\#D!%03X"; }
+
+
+# Get Detector Board firmware version
+# send: aaa?<cr> (Identifies the firmware version on the detector board at address aaa )
+# module replies: aaa?dddd<cr> (where dddd is the version number (i.e. version dd.dd))
+#############################################################################
+getDetBoardVer { out "%(\$1:ADDR.VAL)03X?"; in "%(\$1:ADDR.VAL)03X?"; in "%(\$1:ADDR.VAL)03X?%s"; }
+
+
+# Get Signal Processing Board firmware version
+# send: aaa#D?<cr> (Identifies the firmware version on the signal processing board at address aaa
+# module replies: aaa?dddd<cr> (where dddd is the version number (i.e. version dd.dd))
+#############################################################################
+getSignalBoardVer { out "\r%(\$1:ADDR.VAL)03X\#D?"; in ""; in "%(\$1:ADDR.VAL)03X\#D?"; in "%(\$1:ADDR.VAL)03X\#D?%s"; }
+
+
+# send Debug message
+#############################################################################
+sendMsg { out "%s"; in "%s"; }
+
+
+# read Debug message
+#############################################################################
+readMsg { in "%s"; }

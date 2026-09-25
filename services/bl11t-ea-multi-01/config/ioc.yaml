@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=../ioc.schema.json
+
+ioc_name: "{{ _global.get_env('IOC_NAME') }}"
+
+description: streamdevice E2E instance for GR150 and ETLdetector simulation templates, no device attached
+
+# runtime-lock.yaml selects each pattern's sim/ template in place of its
+# device template (config/gr150.template, config/ETLdetector.template). The
+# simulation templates hold soft records only, so no asyn port is created and
+# the bus/port parameters below are not used by any record.
+
+entities:
+  - type: epics.EpicsEnvSet
+    name: EPICS_TZ
+    value: GMT0BST
+
+  - type: epics.EpicsEnvSet
+    name: STREAM_PROTOCOL_PATH
+    value: /epics/runtime/protocol/
+
+  - type: devIocStats.iocAdminSoft
+    IOC: "{{ ioc_name | upper }}"
+
+  - type: GR150.gr150
+    P: BL11T-EA-MULTI-01:CHILLER
+    bus: NONE
+
+  - type: ETLdetector.ETLdetector
+    P: BL11T-EA-MULTI-01
+    Q: ":ETL"
+    addr: "1"
+    port: NONE

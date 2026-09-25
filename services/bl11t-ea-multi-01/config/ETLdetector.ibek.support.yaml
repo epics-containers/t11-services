@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://github.com/epics-containers/ibek/releases/download/4.8.0-beta.2/ibek.support.schema.json
+
+# Imported from DLS production support module: ETLdetector 1-21
+# Source: /dls_sw/prod/R3.14.12.7/support/ETLdetector/1-21
+# Pristine copy of the StreamDevice protocol + EPICS db/template from that release.
+# To check for updates: diff this pattern's files against that path, or against the
+# newest /dls_sw/prod/*/support/ETLdetector/ release.
+
+module: ETLdetector
+
+entity_models:
+  - name: ETLdetector
+    description: |-
+      Comms for ETL (SENS-tech) scintillator detector
+    parameters:
+      P:
+        type: str
+        description: |-
+          Device prefix
+      Q:
+        type: str
+        description: |-
+          Device suffix
+      addr:
+        type: str
+        description: |-
+          Address on the bus in decimal (or hex with a 0x prefix)
+      port:
+        type: str
+        description: |-
+          Asyn port name
+    databases:
+      - file: ETLdetector.template
+        args:
+          .*:
+
+  - name: ETLdetectorDebug
+    description: |-
+      Imported from DLS module ETLdetector (ETLdetectorDebug.template)
+    parameters:
+      P:
+        type: str
+        description: |-
+          Device prefix
+      port:
+        type: str
+        description: |-
+          Asyn port name
+    databases:
+      - file: ETLdetectorDebug.template
+        args:
+          .*:

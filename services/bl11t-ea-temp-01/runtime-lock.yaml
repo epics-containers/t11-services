@@ -1,0 +1,10 @@
+version: 1
+patterns:
+  lakeshore331:
+    version: 0.6.0
+    source: github.com/epics-containers/ibek-runtime-streamdevice
+    files:
+      config/lakeshore331.ibek.support.yaml: sha256:737f6264d8e97f9b1886afc92b7885087b347d1e2e0dad158cda1f3f7f708716
+      config/lakeshore331.protocol: sha256:18cac060b01d2a84743b3fa06c311a78e3a69474f875724c25e3d152a193623c
+      config/lakeshore331.template: sha256:8a246edba3f126a0cb715ddab42cc64fd3598e537b0fb626a19425359ce9a3f1
+      config/lakeshore331_settings.req: sha256:401cd50267a06a8fe38de8e67f68b5440f42b723e6f5d936f4c737f2e71fbaf7

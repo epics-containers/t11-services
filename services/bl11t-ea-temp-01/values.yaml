@@ -1,0 +1,4 @@
+# yaml-language-server: $schema=../../.helm-shared/values.schema.json
+
+ioc-instance:
+  image: ghcr.io/epics-containers/ioc-streamdevice-runtime:2.8.26ec4
