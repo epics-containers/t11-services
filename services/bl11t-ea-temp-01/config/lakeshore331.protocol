@@ -1,0 +1,166 @@
+##################################################
+#
+# Protocol File
+#
+# Protocol file for Lakeshore 331
+# Diamond Light Source, May 2008
+#
+# NOTES:
+#
+# This protocol file assumes using PID loop 1 only.
+#
+##################################################
+
+
+##################################################
+# General Settings
+##################################################
+
+Terminator = "\r\n";
+ReplyTimeout = 1000;
+
+
+###################################################
+# Get functions
+###################################################
+
+# /// Read the device ID
+getID {
+   out "*IDN?";
+   in "%s";
+}
+
+# /// Read the heater status
+getHTR {
+   out "HTR?";
+   in "%f";
+}
+
+# /// Read the setpoint for control loop 1
+getSETP {
+   out "SETP? 1";
+   in "%f";
+}
+
+# /// Read the temperature in kelvin
+getKRDG {
+   out "KRDG? \$1";
+   in "%f";
+}
+
+# /// Read the voltage input
+getSRDG {
+   out "SRDG? \$1";
+   in "%f";
+}
+
+# /// Read the range parameter (power range)
+getRANGE {
+   out "RANGE?";
+   in "%f";
+}
+
+# /// Read the ramp value
+getRAMP {
+   out "RAMP? 1";
+   in "%*d,%f";
+}
+
+# /// Read the ramp status
+getRAMPSTATUS {
+   out "RAMP? 1";
+   in "%d,%*f";
+}
+
+# /// Read the control loop 1 manual output value
+getMOUT {
+   out "MOUT? 1";
+   in "%f";
+}
+
+# /// Read the PID P parameter for control loop 1
+getP {
+   out "PID? 1";
+   in "%f,%*f,%*f";
+}
+
+# /// Read the PID I parameter for control loop 1
+getI {
+   out "PID? 1";
+   in "%*f,%f,%*f";
+}
+
+# /// Read the PID D parameter for control loop 1
+getD {
+   out "PID? 1";
+   in "%*f,%*f,%f";
+}
+
+
+# /// Read the control loop 1 mode
+getCMODE {
+   out "CMODE? 1";
+   in "%d";
+}
+
+# /// Read the control loop auto tuning status
+getTUNEST {
+   out "TUNEST?";
+   in "%d";
+}
+
+
+#######################################################
+# Set functions
+#######################################################
+
+# /// Set the setpoint for control loop 1
+setSETP {
+   out "SETP 1,%f";
+}
+
+# /// Set the range parameter
+setRANGE {
+   out "RANGE %d";
+}
+
+# /// Set the ramp parameter
+#Need to pass in the PV name for the getRAMPSTATUS protocol.
+setRAMP {
+   out "RAMP 1,%(\$1.VAL)d,%f";
+}
+
+# /// Set the ramp status
+#Need to pass in the PV name for the getRAMP protocol.
+setRAMPSTATUS {
+   out "RAMP 1,%d,%(\$1.VAL)f";
+}
+
+# /// Set the control loop 1 manual output value.
+setMOUT {
+   out "MOUT 1,%f";
+}
+
+# /// Set the PID P parameter for control loop 1
+#Can just send the first argument for this PID command just just set P
+setP {
+   out "PID 1,%f";
+}
+
+# /// Set the PID I parameter for control loop 1
+#Have to also set P as the first argument in the list. I corresponds to the second argument.
+setI {
+   out "PID 1,%(\$1.VAL)f,%f";
+}
+
+# /// Set the PID D parameter for control loop 1
+#Have to also set the P and I parameters. D corresponds to the third argument.
+setD {
+   out "PID 1,%(\$1.VAL)f,%(\$2.VAL)f,%f";
+}
+
+# /// Set the mode for control loop 1.
+setCMODE {
+   out "CMODE 1,%d";
+}
+

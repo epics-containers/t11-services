@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=../ioc.schema.json
+
+ioc_name: "{{ _global.get_env('IOC_NAME') }}"
+
+description: streamdevice E2E instance for lakeshore331, no device attached
+
+entities:
+  - type: epics.EpicsEnvSet
+    name: EPICS_TZ
+    value: GMT0BST
+
+  - type: epics.EpicsEnvSet
+    name: STREAM_PROTOCOL_PATH
+    value: /epics/runtime/protocol/
+
+  - type: devIocStats.iocAdminSoft
+    IOC: "{{ ioc_name | upper }}"
+
+  # nothing listens at this address: this instance has no device attached
+  - type: asyn.AsynIP
+    name: LAKESHORE_01_PORT
+    port: 192.0.2.1:5401
+
+  # ONOFFDEFAULT 1 starts the controller with comms OFF: every polled record
+  # has SDIS $(P):ONOFF, so nothing talks to the port until ONOFF is set to ON
+  - type: lakeshore331.lakeshore331
+    P: BL11T-EA-TEMP-01
+    PORT: LAKESHORE_01_PORT
+    ADDR: 0
+    SCAN: 5
+    TEMPSCAN: 5
+    ONOFFDEFAULT: 1

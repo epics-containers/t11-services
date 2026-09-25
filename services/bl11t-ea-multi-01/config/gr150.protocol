@@ -1,0 +1,22 @@
+# Protocol file for the Grant Instruments Optima Bath Controller (GR150)
+# Version: 1.0
+# Date:    29-04-2008
+
+ExtraInput = Ignore;
+
+# Read the current temperatures.  This will return (in an array of bytes)
+#
+# 1) Current temperature ( * 100 )
+# 2) Set point temperature ( * 100 )
+# 3) High alarm temperature ( * 100 )
+# 4) Low alarm temperature ( * 100 )
+readTemperature {
+    out "*\x02t%<sum>";
+	in "*\x0aT%(\$1:TEMPERATURE.A)2r%(\$1:SETPOINT.A)2r%(\$1:HIGH_LIMIT.A)2r%(\$1:LOW_LIMIT.A)2r%<sum>";
+}
+
+setTemperature {
+	out "*\x0aI%.2r\x00\x00\x00\x00\x00\x00%<sum>";
+	in "*\x03I1%<sum>";
+}
+

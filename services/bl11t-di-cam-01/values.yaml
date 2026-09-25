@@ -5,7 +5,7 @@ ioc-instance:
 
   # a PVC called bl11t-di-cam-01-data, mounted at /data, for the file writers
   dataVolume:
-    enabled: true
+    pvc: true
 
   # the areaDetector plugin chain moves 1024x1024 arrays, so the chart's
   # default 500m / 256Mi limits are too tight

@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://github.com/epics-containers/ibek/releases/download/4.8.0-beta.2/ibek.support.schema.json
+
+# Imported from DLS production support module: lakeshore331 1-13
+# Source: /dls_sw/prod/R3.14.12.7/support/lakeshore331/1-13
+# Pristine copy of the StreamDevice protocol + EPICS db/template from that release.
+# To check for updates: diff this pattern's files against that path, or against the
+# newest /dls_sw/prod/*/support/lakeshore331/ release.
+
+module: lakeshore331
+
+entity_models:
+  - name: lakeshore331
+    description: |-
+      Lakeshore 331 Temperature Controller
+      Notes: The temperatures in Kelvin are archived once every 10 secs.
+    parameters:
+      P:
+        type: str
+        description: |-
+          Prefix for PV name
+      PORT:
+        type: str
+        description: |-
+          Bus/Port Address (eg. ASYN Port).
+      ADDR:
+        type: int
+        description: |-
+          Address on the bus (optional)
+      TEMPSCAN:
+        type: int
+        description: |-
+          SCAN rate for the temperature/voltage readings
+      SCAN:
+        type: int
+        description: |-
+          SCAN rate for non-temperature/voltage parameters.
+      ONOFFDEFAULT:
+        type: int
+        description: |-
+          Default value for ON/OFF
+    databases:
+      - file: lakeshore331.template
+        args:
+          .*:

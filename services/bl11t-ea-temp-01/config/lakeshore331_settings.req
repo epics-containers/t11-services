@@ -1,0 +1,9 @@
+$(P):CMODE_S
+$(P):D_S
+$(P):I_S
+$(P):MOUT_S
+$(P):P_S
+$(P):RAMPST_S
+$(P):RAMP_S
+$(P):RANGE_S
+$(P):SETP_S

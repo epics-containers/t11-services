@@ -1,0 +1,30 @@
+version: 2
+patterns:
+  ETLdetector:
+    version: 0.6.0
+    source: github.com/epics-containers/ibek-runtime-streamdevice
+    select:
+      include:
+      - src: sim/ETLdetector_sim\.template
+        dest: config/ETLdetector.template
+      exclude:
+      - ETLdetector\.template
+    files:
+      config/ETLdetector.ibek.support.yaml: sha256:11b663da4ff85f7bd08dc4d161661a0330ab6b781ec1194405e09f3dfdf2129a
+      config/ETLdetector.protocol: sha256:ac2df872be10021aa9aba4fdeafeeb8756d4a956f2ce3b4a553561a941a0d880
+      config/ETLdetector.template: sha256:81e4a4858aa83158a016233e1c8aba6fd1272181379e58257ca18c78b29c4742
+      config/ETLdetectorDebug.template: sha256:55b9399ddb92e4b7b4f89375dd7961ce0ee8763ec184d4bf4b28d946342dfaa1
+      config/ETLdetector_settings.req: sha256:d38a353230d91fab2e8e70e8f69edff846a28484520dea863a611c6c36df0130
+  GR150:
+    version: 0.6.0
+    source: github.com/epics-containers/ibek-runtime-streamdevice
+    select:
+      include:
+      - src: sim/simulation_gr150\.template
+        dest: config/gr150.template
+      exclude:
+      - gr150\.template
+    files:
+      config/GR150.ibek.support.yaml: sha256:4315b98007a93d8ab8dff30ee9e39744c8745686af500b4d5fa1c4449f6a9495
+      config/gr150.protocol: sha256:fdeb315af90032f6ac168e76386521cd7cf52a6bfdd7b68aad879909ef2f67eb
+      config/gr150.template: sha256:aaeb6716fcfc5877a02cabbe5cc932f97c7aa72b8eb24cc8642a6dbac063f107
