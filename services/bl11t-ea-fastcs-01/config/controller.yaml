@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=schema.json
+
+# fastcs-example's demo TempController, run against the
+# temp-controller-simulator sidecar (see values.yaml) instead of real
+# hardware -- there is no device on the other end of ip_settings below,
+# the simulator answers it inside the pod instead.
+controller:
+  ip_settings:
+    ip: "localhost"
+    port: 25565
+  num_ramp_controllers: 1
+transport:
+  - pva_ioc:
+      pv_prefix: BL11T-EA-FASTCS-01
+    gui:
+      output_path: /epics/opi/pva_example.bob
+  - ca_ioc:
+      pv_prefix: BL11T-EA-FASTCS-01
+    gui:
+      output_path: /epics/opi/ca_example.bob

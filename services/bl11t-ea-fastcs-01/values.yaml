@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=../../.helm-shared/values.schema.json
+
+ioc-instance:
+  image: ghcr.io/diamondlightsource/fastcs-example-debug:2025.10.1
+  args:
+    # note adding stdio-socket as a dependency to your fastcs project is
+    # recommended, and allows you to share the IOC console as follows:
+    # when stdio-socket is running, `console` will attach to your IOC console
+    - |
+      # the temp-controller-simulator sidecar (see extraContainers below) can
+      # still be starting when this container does; fastcs does not retry a
+      # refused connection, so wait for its port before starting. Give up
+      # after 30s and start anyway.
+      for ((i = 0; i < 30; i++)); do
+          if { exec 3<>/dev/tcp/127.0.0.1/25565; } 2>/dev/null; then
+              exec 3>&-
+              break
+          fi
+          sleep 1
+      done
+      if ((i == 30)); then
+          echo "tickit sim still not listening on 127.0.0.1:25565 after 30s -- starting anyway"
+      else
+          echo "tickit sim listening on 127.0.0.1:25565 after ${i}s"
+      fi
+      exec stdio-socket --ptty "fastcs-example run /epics/ioc/config/controller.yaml"
+
+  # no real device is attached to this instance; the temp controller
+  # simulator runs the fastcs-example demo device in a second container,
+  # the same way p47's bl47p-ea-fastcs-01 does.
+  extraContainers:
+    - name: temp-controller-simulator
+      image: ghcr.io/diamondlightsource/fastcs-example:2025.9.1
+      command:
+        - tickit
+        - all
+        - /epics/ioc/config/temp_controller.yaml
+
+  # DO NOT use the default livenessProbe and preStop from ioc-instance.
+  # Leave blank or provide a path to an executable inside the container image.
+  livenessExecutable: ""
+  preStopExecutable: ""
