@@ -8,10 +8,10 @@ type: application
 # ioc-group renders the ioc-instance library once per entry in .Values.iocs,
 # so it pulls ioc-instance in for us - do not depend on ioc-instance here too.
 # The packaged ioc-group vendors the ioc-instance it was built against, which
-# is the same source as ioc-instance 5.13.0-beta.1.
+# is the same source as ioc-instance 5.13.0-beta.2.
 dependencies:
   - name: ioc-group
-    version: 5.13.0-beta.1
+    version: 5.13.0-beta.2
     repository: "oci://ghcr.io/epics-containers/charts"
     import-values:
       - child: ioc-instance
