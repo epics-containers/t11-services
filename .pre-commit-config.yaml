@@ -20,7 +20,7 @@ repos:
         # only do this if the techui support submodule has been added.
         # techui-builder only accepts an absolute opis URL, so techui.yaml has
         # the placeholder https://xxx-opis; rewrite it to ../ so each link is
-        # relative to /bl11t-synoptic/ and works on any OPI server host.
+        # relative to the synoptic service and works on any OPI server host.
         entry: |
           bash -c "
             if [[ -f synoptic/techui-support/techui-support.yaml ]]; then

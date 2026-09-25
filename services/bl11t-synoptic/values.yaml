@@ -6,6 +6,9 @@ ioc-instance:
 
   rebootEveryCommit: true
 
+  # writable scratch space for the init container: HOME is /tmp, so git config,
+  # the synoptic clone and uv's Python, cache and tools all live here. It lasts
+  # for the lifetime of the Pod, so init container retries reuse the cache.
   volumes:
     - name: init-home
       emptyDir: {}
@@ -19,6 +22,9 @@ ioc-instance:
 
   initContainers:
     - name: generate-synoptic-extras
+      # this image already contains git and uv, so nothing is installed at
+      # runtime (the init container runs with the service's non-root
+      # securityContext, so apt-get cannot be used)
       image: ghcr.io/diamondlightsource/ubuntu-devcontainer:resolute-20260811.1
       command:
         - sh

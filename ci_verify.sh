@@ -6,7 +6,7 @@
 #
 # At present this will only work with IOCs because it uses ibek. To support
 # other future services that don't use ibek, we will need to add a standard
-# entrypoint for validating the config folder mounted at /config.
+# entrypoint for validating the config folder mounted at /epics/ioc/config.
 
 ROOT=$(realpath $(dirname ${0}))
 set -xe
@@ -24,7 +24,16 @@ cd ${ROOT}
 #  'ibek pattern' vendoring, so no submodule init is required for runtime support)
 git submodule update --init
 
-pip install uv
+# install uv only if it is missing: a local pip may be unable to install it
+if ! command -v uv >/dev/null; then
+    pip install uv || {
+        echo "ERROR: uv not found and pip could not install it." >&2
+        echo "Install uv from https://docs.astral.sh/uv/ and re-run." >&2
+        exit 1
+    }
+fi
+# a pre-installed uv is reused as-is: >= 0.5.6 is needed (uvx --constraints)
+uv --version
 # use python 3.13 to ensure latest pydantic
 uv venv --python 3.13 --clear
 source .venv/bin/activate
@@ -35,21 +44,6 @@ uvx pre-commit install
 uvx ibek --version
 uvx techui-builder --version
 uvx pre-commit run --all-files --show-diff-on-failure
-
-# Determine diff base (also used later to pick the changed services)
-if [[ -n "${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-}" ]]; then
-    # GitLab MR
-    DIFF_BASE=$(git merge-base HEAD "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME}")
-elif [[ -n "${GITHUB_BASE_REF:-}" ]]; then
-    # GitHub PR
-    DIFF_BASE=$(git merge-base HEAD "origin/${GITHUB_BASE_REF}")
-elif git rev-parse HEAD~1 >/dev/null 2>&1; then
-    # normal push
-    DIFF_BASE="HEAD~1"
-else
-    # first commit
-    DIFF_BASE=$(git hash-object -t tree /dev/null)
-fi
 
 # Verify vendored runtime-support integrity for every instance
 ################################################################################
@@ -91,19 +85,56 @@ else
     if ! docker version &>/dev/null; then docker=podman; else docker=docker; fi
 fi
 
-# Get changed services (excluding global values.yaml)
-CHANGED_SERVICES=$(git diff --name-only "$DIFF_BASE" HEAD \
-  | grep '^services/' \
-  | grep -v '^services/values.yaml' \
-  | cut -d/ -f2 \
-  | sort -u)
+# On CI runners the working tree is on local disk so :z SELinux relabelling
+# works fine. On developer workstations the tree may sit on NFS which does not
+# support xattr; disable SELinux labelling instead.
+if [[ -n "${CI:-}" ]]; then
+    vol_z=":z"
+    selinux_opt=""
+elif [[ $(basename "${docker}") != "kodman" ]]; then
+    vol_z=""
+    selinux_opt="--security-opt label=disable"
+else
+    vol_z=""
+    selinux_opt=""
+fi
 
+# Choose the services to check
+################################################################################
+# A manually-run pipeline always checks every service, so it can be used to
+# sweep the whole repo on demand. A push to the default branch checks only
+# what that push changed, so a green run means that push is good, not that
+# every service still is. A branch or merge request checks what has changed
+# since the default branch or the MR/PR target. Anything else -- outside CI,
+# or a base commit that cannot be fetched (a new branch, a force push) --
+# checks every service, since there is nothing to safely diff against.
+target=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-${GITHUB_BASE_REF:-${CI_DEFAULT_BRANCH:-}}}
+branch=${CI_COMMIT_BRANCH:-${GITHUB_REF_NAME:-}}
+default=${CI_DEFAULT_BRANCH:-}
+case ${CI_PIPELINE_SOURCE:-}${GITHUB_EVENT_NAME:-}/$branch/$default/$target in
+    web*|*workflow_dispatch*)  REF= ;;                       # manual full run: no base to diff from
+    */"$default"/"$default"/*) REF=$CI_COMMIT_BEFORE_SHA ;;  # default branch push: diff from just before this push
+    */*/*/?*)                  REF=$target ;;                # branch or MR: diff from its target
+    *)                         REF= ;;                       # fallback: nothing to compare against
+esac
+
+if [[ -n "${REF}" ]] &&
+    git fetch --quiet origin "${REF}" &&
+    DIFF_BASE=$(git merge-base HEAD FETCH_HEAD); then
+    echo "Checking services changed since ${REF} (${DIFF_BASE})"
+    SERVICES=$(git diff --name-only "${DIFF_BASE}" HEAD -- services/ | cut -d/ -f2 | sort -u)
+else
+    echo "Checking all services"
+    SERVICES=$(ls "${ROOT}/services")
+fi
 
 # Need to make sure values.yaml is included in the ci
 cp -L "${ROOT}/services/values.yaml" "${ROOT}/.ci_work/"
 
-# copy only the changed services to a temporary location to avoid dirtying the repo
-for svc in $CHANGED_SERVICES; do
+# copy the services to check to a temporary location to avoid dirtying the repo
+for svc in $SERVICES; do
+  # skip values.yaml and deleted services
+  [[ -d "${ROOT}/services/$svc" ]] || continue
   echo "Preparing service: $svc"
   cp -Lr "${ROOT}/services/$svc" "${ROOT}/.ci_work/"
 done
@@ -124,8 +155,9 @@ do
 
     echo "Validating helm chart for ${service_name}"
     $docker run --rm --entrypoint bash \
-        -v ${ROOT}/.ci_work:/services:z \
-        -v ${ROOT}/.helm-shared:/.helm-shared:z \
+        $selinux_opt \
+        -v "${ROOT}/.ci_work:/services${vol_z}" \
+        -v "${ROOT}/.helm-shared:/.helm-shared${vol_z}" \
         alpine/helm:3.14.3 \
         -c "
            helm dependency update /services/$service_name &&
@@ -142,8 +174,11 @@ do
         continue
     fi
 
-    # Get the container image that this service uses from values.yaml if supplied
-    image=$(cat ${service}/values.yaml | sed -rn 's/^ +image: (.*)/\1/p')
+    # pick_ioc_image.py prints the IOC container image from values.yaml (an
+    # ioc-instance.image at any depth, else the only image in the file), or
+    # exits with an explanatory error if several images are found and none
+    # can be picked out that way.
+    image=$("${ROOT}/pick_ioc_image.py" "${service}/values.yaml")
 
     if [ -n "${image}" ]; then
         echo "Validating ${service} with ${image}"
@@ -151,19 +186,33 @@ do
         runtime=/tmp/ioc-runtime/$(basename ${service})
         mkdir -p ${runtime}
 
-        # avoid issues with auto-gen genicam pvi files (ioc-adaravis only)
-        sed -i s/AutoADGenICam/ADGenICam/ ${service}/config/ioc.yaml
-
-        # This will fail and exit if the ioc.yaml is invalid
-        # Also show the startup script we just generated (and verify it exists)
-        # 'ibek runtime generate2 /config' reads the whole mounted config folder
-        # (ioc.yaml + any vendored/local *.ibek.support.yaml, proto and db) and
-        # places the generated runtime (st.cmd, proto, db) under /epics/runtime.
+        # Prefer start.sh --test (generates all runtime assets - st.cmd, db,
+        # pvi - exactly as in production, but skips hardware connections and
+        # the IOC binary launch).
+        # For released images without this test feature, fall back to a plain
+        # 'ibek runtime generate2' which only renders the config and
+        # never touches start.sh or the IOC binary.
+        # Either way, the validation runs under 'timeout' inside the container,
+        # so a start.sh that blocks (e.g. 'ibek ioc do-wait' with an unreachable
+        # IP) fails fast instead of hanging the job. The timeout does not
+        # include the image pull, and when it fires the container's main
+        # process exits, so the container stops with it.
+        # The probe matches the '--test)' case arm that parses start.sh's
+        # arguments, not any other mention of --test.
         $docker run --rm --entrypoint bash \
-            -v ${service}/config:/config:z \
-            ${image} \
+            $selinux_opt \
+            -v "${service}/config:/epics/ioc/config${vol_z}" \
+            "${image}" \
             -c "
-            ibek runtime generate2 /config  &&
+            if grep -q -- '--test)' /epics/ioc/start.sh; then
+                timeout --kill-after=10s 60s /epics/ioc/start.sh --test
+            else
+                echo 'start.sh has no --test support; falling back to ibek runtime generate2'
+                # avoid issues with auto-gen genicam pvi files on the fallback
+                # path (ioc-adaravis only) -- start.sh --test handles this itself
+                sed -i s/AutoADGenICam/ADGenICam/ /epics/ioc/config/ioc.yaml
+                timeout --kill-after=10s 60s ibek runtime generate2 /epics/ioc/config
+            fi &&
             cat /epics/runtime/st.cmd
             "
 
