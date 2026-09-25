@@ -32,6 +32,9 @@ entities:
       dbpf BL11T-DI-CAM-01:ROI:EnableCallbacks 1
       dbpf BL11T-DI-CAM-01:PVA:EnableCallbacks 1
       dbpf BL11T-DI-CAM-01:STAT:EnableCallbacks 1
+      dbpf BL11T-DI-CAM-01:HDF5:FilePath "/data/"
+      dbpf BL11T-DI-CAM-01:TIFF:FilePath "/data/"
+      dbpf BL11T-DI-CAM-01:NCDF:FilePath "/data/"
       dbpf BL11T-DI-CAM-01:DRV:Acquire 1
 
   - type: ADCore.NDROI
