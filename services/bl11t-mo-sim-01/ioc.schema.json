@@ -1,0 +1,2975 @@
+{
+  "$defs": {
+    "DIR": {
+      "enum": [
+        "Pos",
+        "Neg"
+      ],
+      "title": "DIR",
+      "type": "string"
+    },
+    "RepeatEntity": {
+      "additionalProperties": false,
+      "description": "A definition of RepeatEntity for the type checker\n\nThis is not really used - instead the dynamic class is created\nby the make_entity_model function is used.",
+      "properties": {
+        "type": {
+          "const": "ibek.repeat",
+          "default": "ibek.repeat",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "values": {
+          "anyOf": [
+            {
+              "items": {},
+              "type": "array"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The list of values to iterate over",
+          "title": "Values"
+        },
+        "variable": {
+          "default": "index",
+          "description": "The variable name to use in the entity model",
+          "title": "Variable",
+          "type": "string"
+        },
+        "entity": {
+          "additionalProperties": true,
+          "description": "The entity model to repeat",
+          "title": "Entity",
+          "type": "object"
+        }
+      },
+      "required": [
+        "values",
+        "entity"
+      ],
+      "title": "RepeatEntity",
+      "type": "object"
+    },
+    "Wait4IPEntity": {
+      "additionalProperties": false,
+      "description": "A definition of Wait4IPEntity for the type checker.\n\nThis is not really used - instead the dynamic class is created\nby the make_entity_models function is used.",
+      "properties": {
+        "type": {
+          "const": "ibek.wait_ip",
+          "default": "ibek.wait_ip",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "device": {
+          "default": "DEVICE",
+          "description": "The device name to use in the database record.",
+          "title": "Device",
+          "type": "string"
+        },
+        "timeout": {
+          "default": 0,
+          "description": "The number of seconds to wait for a response before considering the communication attempt a failure and exiting the IOC startup process; this will trigger a restart of the IOC pod by Kubernetes.\nA value of 0 means to wait indefinitely until communication is established.",
+          "title": "Timeout",
+          "type": "integer"
+        },
+        "address": {
+          "description": "The IP address and port to check communication with.",
+          "title": "Address",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "title": "Wait4IPEntity",
+      "type": "object"
+    },
+    "Wait4USBEntity": {
+      "additionalProperties": false,
+      "description": "A definition of Wait4USBEntity for the type checker.\n\nThis is not really used - instead the dynamic class created\nby the make_entity_models function is used.",
+      "properties": {
+        "type": {
+          "const": "ibek.wait_usb",
+          "default": "ibek.wait_usb",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "device": {
+          "default": "DEVICE",
+          "description": "The device name to use in the database record.",
+          "title": "Device",
+          "type": "string"
+        },
+        "timeout": {
+          "default": 0,
+          "description": "The number of seconds to wait for a response before considering the communication attempt a failure and exiting the IOC startup process; this will trigger a restart of the IOC pod by Kubernetes.\nA value of 0 means to wait indefinitely until communication is established.",
+          "title": "Timeout",
+          "type": "integer"
+        },
+        "id": {
+          "description": "The ID of the USB device to wait for. This should be in the format 'vendor_id:product_id', where vendor_id and product_id are the hexadecimal IDs of the USB device. For example, '1234:5678'.",
+          "title": "Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Wait4USBEntity",
+      "type": "object"
+    },
+    "asyn_AsynIP": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "asyn.AsynIP",
+          "description": "Asyn IP Port",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "port": {
+          "description": "IP address optionally followed by :port",
+          "title": "Port",
+          "type": "string"
+        },
+        "name": {
+          "description": "Identifying port name",
+          "title": "Name",
+          "type": "string"
+        },
+        "input_eos": {
+          "default": "\\n",
+          "description": "Input end of string (terminator)",
+          "title": "Input Eos",
+          "type": "string"
+        },
+        "output_eos": {
+          "default": "\\n",
+          "description": "Output end of string (terminator)",
+          "title": "Output Eos",
+          "type": "string"
+        },
+        "priority": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Priority",
+              "type": "integer"
+            }
+          ],
+          "default": 100,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Priority"
+        },
+        "noAutoConnect": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Set to stop autoconnect",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Noautoconnect"
+        },
+        "noProcessEos": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Set to avoid processing end of string",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Noprocesseos"
+        },
+        "simulation": {
+          "default": "",
+          "description": "IP port to connect to if in simulation mode",
+          "title": "Simulation",
+          "type": "string"
+        },
+        "baud": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Baud Rate",
+              "type": "integer"
+            }
+          ],
+          "default": 9600,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Baud"
+        },
+        "parity": {
+          "$ref": "#/$defs/ibek__entity_factory__parity__1",
+          "default": "none",
+          "description": "Parity"
+        },
+        "crtscts": {
+          "$ref": "#/$defs/crtscts",
+          "default": "N",
+          "description": "Set hardware flow control on"
+        },
+        "stop": {
+          "$ref": "#/$defs/ibek__entity_factory__stop__1",
+          "default": "1",
+          "description": "Stop Bits"
+        },
+        "disconnectOnReadTimeout": {
+          "$ref": "#/$defs/disconnectOnReadTimeout",
+          "default": "N",
+          "description": "Disconnect when a read times out"
+        }
+      },
+      "required": [
+        "type",
+        "port",
+        "name"
+      ],
+      "title": "asyn_AsynIP",
+      "type": "object"
+    },
+    "asyn_AsynIPServer": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "asyn.AsynIPServer",
+          "description": "Asyn IP Server Port",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "port": {
+          "description": "Serial port tty name / IP address optionally followed by protocol",
+          "title": "Port",
+          "type": "string"
+        },
+        "name": {
+          "description": "Override name",
+          "title": "Name",
+          "type": "string"
+        },
+        "input_eos": {
+          "default": "\n",
+          "description": "Input end of string (terminator)",
+          "title": "Input Eos",
+          "type": "string"
+        },
+        "output_eos": {
+          "default": "\n",
+          "description": "Output end of string (terminator)",
+          "title": "Output Eos",
+          "type": "string"
+        },
+        "priority": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Priority",
+              "type": "integer"
+            }
+          ],
+          "default": 100,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Priority"
+        },
+        "noAutoConnect": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'bool'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Set to stop autoconnect",
+              "type": "boolean"
+            }
+          ],
+          "default": false,
+          "description": "union of <class 'bool'> and jinja representation of {typ}",
+          "title": "Noautoconnect"
+        },
+        "noProcessEos": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'bool'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Set to avoid processing end of string",
+              "type": "boolean"
+            }
+          ],
+          "default": false,
+          "description": "union of <class 'bool'> and jinja representation of {typ}",
+          "title": "Noprocesseos"
+        },
+        "simulation": {
+          "default": "",
+          "description": "IP port to connect to if in simulation mode",
+          "title": "Simulation",
+          "type": "string"
+        },
+        "baud": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Baud Rate",
+              "type": "integer"
+            }
+          ],
+          "default": 9600,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Baud"
+        },
+        "parity": {
+          "$ref": "#/$defs/ibek__entity_factory__parity__2",
+          "default": "none",
+          "description": "Parity"
+        },
+        "crtscts": {
+          "$ref": "#/$defs/crtscts",
+          "default": "N",
+          "description": "Set hardware flow control on"
+        },
+        "stop": {
+          "$ref": "#/$defs/ibek__entity_factory__stop__2",
+          "default": "1",
+          "description": "Stop Bits"
+        },
+        "disconnectOnReadTimeout": {
+          "$ref": "#/$defs/disconnectOnReadTimeout",
+          "default": "Y",
+          "description": "Disconnect when a read times out"
+        },
+        "bits": {
+          "$ref": "#/$defs/ibek__entity_factory__bits__1",
+          "default": "8",
+          "description": "Bits"
+        }
+      },
+      "required": [
+        "type",
+        "port",
+        "name"
+      ],
+      "title": "asyn_AsynIPServer",
+      "type": "object"
+    },
+    "asyn_AsynSerial": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "asyn.AsynSerial",
+          "description": "Asyn Serial Port",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "port": {
+          "description": "Serial port tty name / IP address optionally followed by protocol",
+          "title": "Port",
+          "type": "string"
+        },
+        "name": {
+          "description": "Override name",
+          "title": "Name",
+          "type": "string"
+        },
+        "input_eos": {
+          "default": "\\n",
+          "description": "Input end of string (terminator)",
+          "title": "Input Eos",
+          "type": "string"
+        },
+        "output_eos": {
+          "default": "\\n",
+          "description": "Output end of string (terminator)",
+          "title": "Output Eos",
+          "type": "string"
+        },
+        "priority": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Priority",
+              "type": "integer"
+            }
+          ],
+          "default": 100,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Priority"
+        },
+        "noAutoConnect": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'bool'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Set to stop autoconnect",
+              "type": "boolean"
+            }
+          ],
+          "default": false,
+          "description": "union of <class 'bool'> and jinja representation of {typ}",
+          "title": "Noautoconnect"
+        },
+        "noProcessEos": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'bool'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Set to avoid processing end of string",
+              "type": "boolean"
+            }
+          ],
+          "default": false,
+          "description": "union of <class 'bool'> and jinja representation of {typ}",
+          "title": "Noprocesseos"
+        },
+        "simulation": {
+          "default": "",
+          "description": "IP port to connect to if in simulation mode",
+          "title": "Simulation",
+          "type": "string"
+        },
+        "baud": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Baud Rate",
+              "type": "integer"
+            }
+          ],
+          "default": 9600,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Baud"
+        },
+        "parity": {
+          "$ref": "#/$defs/ibek__entity_factory__parity__3",
+          "default": "N",
+          "description": "Parity"
+        },
+        "crtscts": {
+          "$ref": "#/$defs/crtscts",
+          "default": "N",
+          "description": "Set hardware flow control on"
+        },
+        "stop": {
+          "$ref": "#/$defs/ibek__entity_factory__stop__3",
+          "default": 1,
+          "description": "Stop Bits"
+        },
+        "disconnectOnReadTimeout": {
+          "$ref": "#/$defs/disconnectOnReadTimeout",
+          "default": "N",
+          "description": "Disconnect when a read times out"
+        },
+        "bits": {
+          "$ref": "#/$defs/ibek__entity_factory__bits__2",
+          "default": 8,
+          "description": "Bits"
+        }
+      },
+      "required": [
+        "type",
+        "port",
+        "name"
+      ],
+      "title": "asyn_AsynSerial",
+      "type": "object"
+    },
+    "asyn_Vxi11": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "asyn.Vxi11",
+          "description": "Asyn vxi11 Port",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "port": {
+          "description": "IP address",
+          "title": "Port",
+          "type": "string"
+        },
+        "noAutoConnect": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'bool'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Set to stop autoconnect",
+              "type": "boolean"
+            }
+          ],
+          "description": "union of <class 'bool'> and jinja representation of {typ}",
+          "title": "Noautoconnect"
+        },
+        "priority": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Priority",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Priority"
+        },
+        "simulation": {
+          "description": "IP port to connect to if in simulation mode",
+          "title": "Simulation",
+          "type": "string"
+        },
+        "name": {
+          "description": "Asyn Port name",
+          "title": "Name",
+          "type": "string"
+        },
+        "flags": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "flags (lock devices : recover with IFC)",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Flags"
+        },
+        "timeout": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "default timeout",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Timeout"
+        },
+        "vxiName": {
+          "default": "gpib0",
+          "description": "vxi name",
+          "title": "Vxiname",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "port",
+        "noAutoConnect",
+        "priority",
+        "simulation",
+        "name",
+        "flags"
+      ],
+      "title": "asyn_Vxi11",
+      "type": "object"
+    },
+    "autosave_Autosave": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "autosave.Autosave",
+          "description": "Autosave and restore support for EPICS IOCs",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "P": {
+          "description": "PV prefix for autosave status PVs",
+          "title": "P",
+          "type": "string"
+        },
+        "debug": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'bool'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Debug level",
+              "type": "boolean"
+            }
+          ],
+          "default": false,
+          "description": "union of <class 'bool'> and jinja representation of {typ}",
+          "title": "Debug"
+        },
+        "positions_req_period": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "no. secs between positions save file updates. 0 for no save file",
+              "type": "integer"
+            }
+          ],
+          "default": 5,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Positions Req Period"
+        },
+        "settings_req_period": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "no. secs between settings save file updates. 0 for no save file",
+              "type": "integer"
+            }
+          ],
+          "default": 30,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Settings Req Period"
+        },
+        "path": {
+          "default": "/autosave",
+          "description": "Root of path to put autosave files in, ioc name will be appended to this",
+          "title": "Path",
+          "type": "string"
+        },
+        "num_seq_files": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Number of sequence files to keep",
+              "type": "integer"
+            }
+          ],
+          "default": 3,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Num Seq Files"
+        },
+        "sequence_period": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Period in seconds between sequence files",
+              "type": "integer"
+            }
+          ],
+          "default": 600,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Sequence Period"
+        },
+        "backups": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'bool'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "If True, create dated backup files",
+              "type": "boolean"
+            }
+          ],
+          "default": true,
+          "description": "union of <class 'bool'> and jinja representation of {typ}",
+          "title": "Backups"
+        }
+      },
+      "required": [
+        "type",
+        "P"
+      ],
+      "title": "autosave_Autosave",
+      "type": "object"
+    },
+    "autosave_auto_save_restoreStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "autosave.auto_save_restoreStatus",
+          "description": "Autosave/restore status records providing heartbeat, status and\nreboot monitoring PVs.",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "P": {
+          "description": "PV prefix for save/restore status records",
+          "title": "P",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "P"
+      ],
+      "title": "autosave_auto_save_restoreStatus",
+      "type": "object"
+    },
+    "crtscts": {
+      "enum": [
+        "Y",
+        "N"
+      ],
+      "title": "crtscts",
+      "type": "string"
+    },
+    "devIocStats_iocAdminScanMon": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "devIocStats.iocAdminScanMon",
+          "description": "Create some records for reading IOC statistics and details.",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "IOC": {
+          "description": "Device prefix",
+          "title": "Ioc",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "IOC"
+      ],
+      "title": "devIocStats_iocAdminScanMon",
+      "type": "object"
+    },
+    "devIocStats_iocAdminSoft": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "devIocStats.iocAdminSoft",
+          "description": "Create some records for reading IOC statistics and details.",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "IOC": {
+          "description": "Device prefix",
+          "title": "Ioc",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "IOC"
+      ],
+      "title": "devIocStats_iocAdminSoft",
+      "type": "object"
+    },
+    "devIocStats_iocAdminVxWorks": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "devIocStats.iocAdminVxWorks",
+          "description": "Create some records for reading IOC statistics and details.",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "IOC": {
+          "description": "Device prefix",
+          "title": "Ioc",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "IOC"
+      ],
+      "title": "devIocStats_iocAdminVxWorks",
+      "type": "object"
+    },
+    "disconnectOnReadTimeout": {
+      "enum": [
+        "Y",
+        "N"
+      ],
+      "title": "disconnectOnReadTimeout",
+      "type": "string"
+    },
+    "epics_DbAlias": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.DbAlias",
+          "description": "Adds an alias to a record in the Db",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "the name of the record to alias",
+          "title": "Name",
+          "type": "string"
+        },
+        "alias": {
+          "description": "the alias to apply to the above name",
+          "title": "Alias",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "alias"
+      ],
+      "title": "epics_DbAlias",
+      "type": "object"
+    },
+    "epics_DbLine": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.DbLine",
+          "description": "Adds a line of text to ioc.db",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "line": {
+          "description": "line of text to add to the Db",
+          "title": "Line",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "line"
+      ],
+      "title": "epics_DbLine",
+      "type": "object"
+    },
+    "epics_DbText": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.DbText",
+          "description": "Adds an arbitrary block of text to ioc.db",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "text": {
+          "description": "block of text to add to the DbText",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ],
+      "title": "epics_DbText",
+      "type": "object"
+    },
+    "epics_EpicsCaMaxArrayBytes": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.EpicsCaMaxArrayBytes",
+          "description": "Set the maximum size in bytes for sending arrays over channel access",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "max_bytes": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Max size in bytes for sending arrays over channel access",
+              "type": "integer"
+            }
+          ],
+          "default": 6000000,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Max Bytes"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "epics_EpicsCaMaxArrayBytes",
+      "type": "object"
+    },
+    "epics_EpicsEnvSet": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.EpicsEnvSet",
+          "description": "Set an environment variable in the ioc Shell",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Name of environment variable",
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "description": "Value of environment variable",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "value"
+      ],
+      "title": "epics_EpicsEnvSet",
+      "type": "object"
+    },
+    "epics_EpicsTsMinWest": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.EpicsTsMinWest",
+          "description": "Set the relative time zone minutes West relative to GMT (+/-720)",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "minutes_west": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "relative time zone minutes",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Minutes West"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "epics_EpicsTsMinWest",
+      "type": "object"
+    },
+    "epics_InterruptVectorVME": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.InterruptVectorVME",
+          "description": "Reserve a VME interrupt vector",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "A name for an interrupt vector variable",
+          "title": "Name",
+          "type": "string"
+        },
+        "count": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "The number of interrupt vectors to reserve",
+              "type": "integer"
+            }
+          ],
+          "default": 1,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Count"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "epics_InterruptVectorVME",
+      "type": "object"
+    },
+    "epics_PostStartupCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.PostStartupCommand",
+          "description": "Adds an arbitrary command in the startup script after iocInit",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "command": {
+          "default": "",
+          "description": "command string",
+          "title": "Command",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "epics_PostStartupCommand",
+      "type": "object"
+    },
+    "epics_PreBootCommandSet": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.PreBootCommandSet",
+          "description": "Adds an arbitrary command in the startup script before iocInit (pre-boot)",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "command": {
+          "default": "",
+          "description": "command string",
+          "title": "Command",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "epics_PreBootCommandSet",
+      "type": "object"
+    },
+    "epics_StartupCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.StartupCommand",
+          "description": "Adds an arbitrary command in the startup script before iocInit",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "command": {
+          "default": "",
+          "description": "command string",
+          "title": "Command",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "epics_StartupCommand",
+      "type": "object"
+    },
+    "epics_dbpf": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "epics.dbpf",
+          "description": "Set a PV value after iocInit",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "pv": {
+          "description": "Name of PV",
+          "title": "Pv",
+          "type": "string"
+        },
+        "value": {
+          "description": "Value to set",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "pv",
+        "value"
+      ],
+      "title": "epics_dbpf",
+      "type": "object"
+    },
+    "ibek__entity_factory__bits__1": {
+      "enum": [
+        "8",
+        "5",
+        "7",
+        "6"
+      ],
+      "title": "bits",
+      "type": "string"
+    },
+    "ibek__entity_factory__bits__2": {
+      "enum": [
+        8,
+        5,
+        7,
+        6
+      ],
+      "title": "bits",
+      "type": "integer"
+    },
+    "ibek__entity_factory__parity__1": {
+      "enum": [
+        "even",
+        "none",
+        "odd"
+      ],
+      "title": "parity",
+      "type": "string"
+    },
+    "ibek__entity_factory__parity__2": {
+      "enum": [
+        "even",
+        "none",
+        "odd"
+      ],
+      "title": "parity",
+      "type": "string"
+    },
+    "ibek__entity_factory__parity__3": {
+      "enum": [
+        "E",
+        "N",
+        "O"
+      ],
+      "title": "parity",
+      "type": "string"
+    },
+    "ibek__entity_factory__stop__1": {
+      "enum": [
+        "1",
+        "2"
+      ],
+      "title": "stop",
+      "type": "string"
+    },
+    "ibek__entity_factory__stop__2": {
+      "enum": [
+        "1",
+        "2"
+      ],
+      "title": "stop",
+      "type": "string"
+    },
+    "ibek__entity_factory__stop__3": {
+      "enum": [
+        1,
+        2
+      ],
+      "title": "stop",
+      "type": "integer"
+    },
+    "motorSim_simMotorAxis": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "motorSim.simMotorAxis",
+          "description": "Creates a simulation motor axis",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "controller": {
+          "description": "a reference to the motion controller",
+          "title": "Controller"
+        },
+        "M": {
+          "description": "PV suffix for the motor record",
+          "title": "M",
+          "type": "string"
+        },
+        "ADDR": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "The axis number (allowed to be from 0 to controller.numAxes-1)",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Addr"
+        },
+        "DESC": {
+          "description": "The description of the axis",
+          "title": "Desc",
+          "type": "string"
+        },
+        "DLLM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "The low limit of the axis (in counts)",
+              "type": "integer"
+            }
+          ],
+          "default": -20000,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Dllm"
+        },
+        "DHLM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "The high limit of the axis (in counts)",
+              "type": "integer"
+            }
+          ],
+          "default": 20000,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Dhlm"
+        },
+        "home": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "The home position of the axis (in counts)",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Home"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "The starting position of the axis (in counts)",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Start"
+        },
+        "DIR": {
+          "$ref": "#/$defs/DIR",
+          "default": 0,
+          "description": "The direction of the axis"
+        },
+        "EGU": {
+          "default": "degrees",
+          "description": "Engineering Units",
+          "title": "Egu",
+          "type": "string"
+        },
+        "VELO": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Velocity",
+              "type": "integer"
+            }
+          ],
+          "default": 1,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Velo"
+        },
+        "VBAS": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Base Velocity (EGU/s)",
+              "type": "number"
+            }
+          ],
+          "default": 0.1,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Vbas"
+        },
+        "ACCL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Seconds to Velocity",
+              "type": "number"
+            }
+          ],
+          "default": 0.2,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Accl"
+        },
+        "BDST": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "BL Distance (EGU)",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Bdst"
+        },
+        "BVEL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "BL Velocity (EGU/s)",
+              "type": "integer"
+            }
+          ],
+          "default": 1,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Bvel"
+        },
+        "BACC": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "BL Seconds to Veloc.",
+              "type": "number"
+            }
+          ],
+          "default": 0.2,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Bacc"
+        },
+        "MRES": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Motor Step Size (EGU)",
+              "type": "number"
+            }
+          ],
+          "default": 0.01,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Mres"
+        },
+        "PREC": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Display precision (EGU)",
+              "type": "integer"
+            }
+          ],
+          "default": 5,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Prec"
+        }
+      },
+      "required": [
+        "type",
+        "controller",
+        "M",
+        "ADDR",
+        "DESC",
+        "home"
+      ],
+      "title": "motorSim_simMotorAxis",
+      "type": "object"
+    },
+    "motorSim_simMotorController": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "motorSim.simMotorController",
+          "description": "Creates a simulation motion controller",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "controllerName": {
+          "description": "The name of the controller and its Asyn Port Name",
+          "title": "Controllername",
+          "type": "string"
+        },
+        "P": {
+          "description": "Device PV Prefix",
+          "title": "P",
+          "type": "string"
+        },
+        "numAxes": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "The number of axes to create",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Numaxes"
+        }
+      },
+      "required": [
+        "type",
+        "controllerName",
+        "P",
+        "numAxes"
+      ],
+      "title": "motorSim_simMotorController",
+      "type": "object"
+    },
+    "motor_MotorSim": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "motor.MotorSim",
+          "description": "Simulated controller Device - instantiate one per controller '''",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Asyn port for motor record",
+          "title": "Name",
+          "type": "string"
+        },
+        "AXES": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Number of Axes",
+              "type": "integer"
+            }
+          ],
+          "default": 8,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Axes"
+        },
+        "ACTIVEPOLL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "polling period when motors are moving",
+              "type": "integer"
+            }
+          ],
+          "default": 50,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Activepoll"
+        },
+        "IDLEPOLL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "polling period when all motors are idle",
+              "type": "integer"
+            }
+          ],
+          "default": 500,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Idlepoll"
+        }
+      },
+      "required": [
+        "type",
+        "name"
+      ],
+      "title": "motor_MotorSim",
+      "type": "object"
+    },
+    "motor_NewFocus": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "motor.NewFocus",
+          "description": "New Focus 874X Picomotor controller",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Asyn port name for motor record",
+          "title": "Name",
+          "type": "string"
+        },
+        "IP": {
+          "description": "Asyn IP port for communication",
+          "title": "Ip"
+        },
+        "AXES": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Number of axes",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Axes"
+        },
+        "MOVINGPOLL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Polling period during move (ms)",
+              "type": "integer"
+            }
+          ],
+          "default": 200,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Movingpoll"
+        },
+        "IDLEPOLL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Polling period when idle (ms)",
+              "type": "integer"
+            }
+          ],
+          "default": 1000,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Idlepoll"
+        }
+      },
+      "required": [
+        "type",
+        "name",
+        "IP",
+        "AXES"
+      ],
+      "title": "motor_NewFocus",
+      "type": "object"
+    },
+    "motor_auto_asyn_auto_power": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "motor.auto_asyn_auto_power",
+          "description": "Automatic amplifier power control for asyn model 3 motor drivers.\nProvides records to enable/disable auto power on/off and set delays.",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "P": {
+          "description": "Device Prefix",
+          "title": "P",
+          "type": "string"
+        },
+        "M": {
+          "description": "Device Suffix",
+          "title": "M",
+          "type": "string"
+        },
+        "PORT": {
+          "description": "Asyn port",
+          "title": "Port",
+          "type": "string"
+        },
+        "ADDR": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Asyn address",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Addr"
+        },
+        "FRAC": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Holding current percentage",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Frac"
+        }
+      },
+      "required": [
+        "type",
+        "P",
+        "M",
+        "PORT",
+        "ADDR"
+      ],
+      "title": "motor_auto_asyn_auto_power",
+      "type": "object"
+    },
+    "motor_basic_asyn_motor": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "motor.basic_asyn_motor",
+          "description": "Basic template, including motor record and associated tags",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "P": {
+          "description": "Device Prefix",
+          "title": "P",
+          "type": "string"
+        },
+        "M": {
+          "description": "Device Suffix",
+          "title": "M",
+          "type": "string"
+        },
+        "PORT": {
+          "description": "Asyn port for motor record",
+          "title": "Port"
+        },
+        "ADDR": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Address on controller",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Addr"
+        },
+        "DESC": {
+          "description": "Description, displayed on EDM screen",
+          "title": "Desc",
+          "type": "string"
+        },
+        "MRES": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Motor Step Size (EGU)",
+              "type": "number"
+            }
+          ],
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Mres"
+        },
+        "VELO": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Velocity (EGU/s)",
+              "type": "number"
+            }
+          ],
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Velo"
+        },
+        "PREC": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Display Precision",
+              "type": "integer"
+            }
+          ],
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Prec"
+        },
+        "EGU": {
+          "default": "",
+          "description": "Engineering Units",
+          "title": "Egu",
+          "type": "string"
+        },
+        "TWV": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Tweak Step Size (EGU)",
+              "type": "number"
+            }
+          ],
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Twv"
+        },
+        "DTYP": {
+          "default": "asynMotor",
+          "description": "DTYP of record",
+          "title": "Dtyp",
+          "type": "string"
+        },
+        "DIR": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "User Direction",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Dir"
+        },
+        "VBAS": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Base Velocity (EGU/s)",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Vbas"
+        },
+        "VMAX": {
+          "default": "$(VELO)",
+          "description": "Max Velocity (EGU/s), defaults to VELO",
+          "title": "Vmax",
+          "type": "string"
+        },
+        "ACCL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Seconds to Velocity",
+              "type": "number"
+            }
+          ],
+          "default": 0.5,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Accl"
+        },
+        "BDST": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "BL Distance (EGU)",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Bdst"
+        },
+        "BVEL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "BL Velocity (EGU/s)",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Bvel"
+        },
+        "BACC": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "BL Seconds to Veloc.",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Bacc"
+        },
+        "DHLM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Dial High Limit",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Dhlm"
+        },
+        "DLLM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Dial Low Limit",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Dllm"
+        },
+        "HLM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "User High Limit",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Hlm"
+        },
+        "LLM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "User Low Limit",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Llm"
+        },
+        "HLSV": {
+          "default": "MAJOR",
+          "description": "HW Lim. Violation Svr",
+          "title": "Hlsv",
+          "type": "string"
+        },
+        "INIT": {
+          "default": "",
+          "description": "Startup commands",
+          "title": "Init",
+          "type": "string"
+        },
+        "SREV": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Steps per Revolution",
+              "type": "integer"
+            }
+          ],
+          "default": 1000,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Srev"
+        },
+        "RRES": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Readback Step Size (EGU)",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Rres"
+        },
+        "ERES": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Encoder Step Size (EGU)",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Eres"
+        },
+        "JAR": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Jog Acceleration (EGU/s^2)",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Jar"
+        },
+        "UEIP": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Use Encoder If Present",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Ueip"
+        },
+        "URIP": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Use RDBL If Present",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Urip"
+        },
+        "RDBL": {
+          "default": "",
+          "description": "Readback Location, set URIP = 1 if you specify this",
+          "title": "Rdbl",
+          "type": "string"
+        },
+        "RLNK": {
+          "default": "",
+          "description": "Readback output link",
+          "title": "Rlnk",
+          "type": "string"
+        },
+        "RTRY": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Max retry count",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Rtry"
+        },
+        "DLY": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Readback settle time (s)",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Dly"
+        },
+        "OFF": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "User Offset (EGU)",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Off"
+        },
+        "RDBD": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Retry Deadband (EGU)",
+              "type": "number"
+            }
+          ],
+          "default": 0.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Rdbd"
+        },
+        "FOFF": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Freeze Offset, 0=variable, 1=frozen",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Foff"
+        },
+        "ADEL": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Alarm monitor deadband (EGU)",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Adel"
+        },
+        "NTM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "New Target Monitor, only set to 0 for soft motors",
+              "type": "integer"
+            }
+          ],
+          "default": 1,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Ntm"
+        },
+        "FEHIGH": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "HIGH limit for following error",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Fehigh"
+        },
+        "FEHIHI": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "HIHI limit for following error",
+              "type": "integer"
+            }
+          ],
+          "default": 0,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Fehihi"
+        },
+        "FEHHSV": {
+          "default": "NO_ALARM",
+          "description": "HIHI alarm severity for following error",
+          "title": "Fehhsv",
+          "type": "string"
+        },
+        "FEHSV": {
+          "default": "NO_ALARM",
+          "description": "HIGH alarm severity for following error",
+          "title": "Fehsv",
+          "type": "string"
+        },
+        "SCALE": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Scale factor, if pmacSetAxisScale is used this should be set",
+              "type": "integer"
+            }
+          ],
+          "default": 1,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Scale"
+        },
+        "HOMEVIS": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "If 1 then home is visible on the gui",
+              "type": "integer"
+            }
+          ],
+          "default": 1,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Homevis"
+        },
+        "HOMEVISSTR": {
+          "default": "Use motor summary screen",
+          "description": "If HOMEVIS=0, then display this text on the gui instead",
+          "title": "Homevisstr",
+          "type": "string"
+        },
+        "name": {
+          "description": "Object name and gui association name",
+          "title": "Name",
+          "type": "string"
+        },
+        "alh": {
+          "default": "None",
+          "description": "set to '#' to comment out alh lines TODO: REALLY???",
+          "title": "Alh",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "P",
+        "M",
+        "PORT",
+        "ADDR",
+        "DESC",
+        "MRES",
+        "VELO",
+        "PREC",
+        "TWV",
+        "name"
+      ],
+      "title": "motor_basic_asyn_motor",
+      "type": "object"
+    },
+    "motor_motorUtil": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "motor.motorUtil",
+          "description": "TODO:ADD DESCRIPTION",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "P": {
+          "description": "Device Prefix",
+          "title": "P",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "P"
+      ],
+      "title": "motor_motorUtil",
+      "type": "object"
+    },
+    "motor_softMotorForPiezo": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "motor.softMotorForPiezo",
+          "description": "TODO:ADD DESCRIPTION",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "P": {
+          "description": "Device Prefix",
+          "title": "P",
+          "type": "string"
+        },
+        "Q": {
+          "description": "Device Suffix",
+          "title": "Q",
+          "type": "string"
+        },
+        "DESC": {
+          "description": "Description, displayed on EDM screen",
+          "title": "Desc",
+          "type": "string"
+        },
+        "RDBL": {
+          "description": "Readback link",
+          "title": "Rdbl",
+          "type": "string"
+        },
+        "OUT": {
+          "description": "Output link",
+          "title": "Out",
+          "type": "string"
+        },
+        "MOVEDLY": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Approximate move time (seconds)",
+              "type": "number"
+            }
+          ],
+          "default": 0.1,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Movedly"
+        },
+        "EGU": {
+          "default": "",
+          "description": "Engineering Units",
+          "title": "Egu",
+          "type": "string"
+        },
+        "DHLM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Dial High Limit",
+              "type": "number"
+            }
+          ],
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Dhlm"
+        },
+        "DLLM": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Dial Low Limit",
+              "type": "number"
+            }
+          ],
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Dllm"
+        },
+        "MRES": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Motor Step Size (EGU)",
+              "type": "number"
+            }
+          ],
+          "default": 1.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Mres"
+        },
+        "RRES": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Readback Step Size (EGU)",
+              "type": "number"
+            }
+          ],
+          "default": 1.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Rres"
+        },
+        "RDBD": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'float'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Retry deadband (EGU)",
+              "type": "number"
+            }
+          ],
+          "default": 1.0,
+          "description": "union of <class 'float'> and jinja representation of {typ}",
+          "title": "Rdbd"
+        },
+        "name": {
+          "default": "",
+          "description": "object name for references from motor positioner for example",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "P",
+        "Q",
+        "DESC",
+        "RDBL",
+        "OUT",
+        "DHLM",
+        "DLLM"
+      ],
+      "title": "motor_softMotorForPiezo",
+      "type": "object"
+    },
+    "pvlogging_BlacklistPvs": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "pvlogging.BlacklistPvs",
+          "description": "Reads a list of PVs which must be excluded from the pvlogging functionality.",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "blacklist_file": {
+          "default": "/epics/ioc/config/pvlogging_excl.txt",
+          "description": "Name of text file comprising the PVs blacklisted from pvlogging",
+          "title": "Blacklist File",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "pvlogging_BlacklistPvs",
+      "type": "object"
+    },
+    "pvlogging_PvLogging": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "pvlogging.PvLogging",
+          "description": "Adds logging of caputs to PVs.",
+          "title": "Type",
+          "type": "string"
+        },
+        "entity_enabled": {
+          "default": true,
+          "description": "enable or disable this entity instance",
+          "title": "Entity Enabled",
+          "type": "boolean"
+        },
+        "access_file": {
+          "default": "$(PVLOGGING)/src/access.acf",
+          "description": "Name of access control file",
+          "title": "Access File",
+          "type": "string"
+        },
+        "logging_enabled": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Enable pvlogging functionality (disabled=0)",
+              "type": "integer"
+            }
+          ],
+          "default": 1,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Logging Enabled"
+        },
+        "max_length": {
+          "anyOf": [
+            {
+              "description": "jinja that renders to <class 'int'>",
+              "pattern": ".*\\{\\{.*\\}\\}.*",
+              "type": "string"
+            },
+            {
+              "description": "Maximum length of logged arrays",
+              "type": "integer"
+            }
+          ],
+          "default": 10,
+          "description": "union of <class 'int'> and jinja representation of {typ}",
+          "title": "Max Length"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "pvlogging_PvLogging",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "ioc_name": {
+      "description": "Name of IOC instance",
+      "title": "Ioc Name",
+      "type": "string"
+    },
+    "description": {
+      "description": "Description of what the IOC does",
+      "title": "Description",
+      "type": "string"
+    },
+    "entities": {
+      "description": "List of entities this IOC instantiates",
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "asyn.AsynIP": "#/$defs/asyn_AsynIP",
+            "asyn.AsynIPServer": "#/$defs/asyn_AsynIPServer",
+            "asyn.AsynSerial": "#/$defs/asyn_AsynSerial",
+            "asyn.Vxi11": "#/$defs/asyn_Vxi11",
+            "autosave.Autosave": "#/$defs/autosave_Autosave",
+            "autosave.auto_save_restoreStatus": "#/$defs/autosave_auto_save_restoreStatus",
+            "devIocStats.iocAdminScanMon": "#/$defs/devIocStats_iocAdminScanMon",
+            "devIocStats.iocAdminSoft": "#/$defs/devIocStats_iocAdminSoft",
+            "devIocStats.iocAdminVxWorks": "#/$defs/devIocStats_iocAdminVxWorks",
+            "epics.DbAlias": "#/$defs/epics_DbAlias",
+            "epics.DbLine": "#/$defs/epics_DbLine",
+            "epics.DbText": "#/$defs/epics_DbText",
+            "epics.EpicsCaMaxArrayBytes": "#/$defs/epics_EpicsCaMaxArrayBytes",
+            "epics.EpicsEnvSet": "#/$defs/epics_EpicsEnvSet",
+            "epics.EpicsTsMinWest": "#/$defs/epics_EpicsTsMinWest",
+            "epics.InterruptVectorVME": "#/$defs/epics_InterruptVectorVME",
+            "epics.PostStartupCommand": "#/$defs/epics_PostStartupCommand",
+            "epics.PreBootCommandSet": "#/$defs/epics_PreBootCommandSet",
+            "epics.StartupCommand": "#/$defs/epics_StartupCommand",
+            "epics.dbpf": "#/$defs/epics_dbpf",
+            "ibek.repeat": "#/$defs/RepeatEntity",
+            "ibek.wait_ip": "#/$defs/Wait4IPEntity",
+            "ibek.wait_usb": "#/$defs/Wait4USBEntity",
+            "motor.MotorSim": "#/$defs/motor_MotorSim",
+            "motor.NewFocus": "#/$defs/motor_NewFocus",
+            "motor.auto_asyn_auto_power": "#/$defs/motor_auto_asyn_auto_power",
+            "motor.basic_asyn_motor": "#/$defs/motor_basic_asyn_motor",
+            "motor.motorUtil": "#/$defs/motor_motorUtil",
+            "motor.softMotorForPiezo": "#/$defs/motor_softMotorForPiezo",
+            "motorSim.simMotorAxis": "#/$defs/motorSim_simMotorAxis",
+            "motorSim.simMotorController": "#/$defs/motorSim_simMotorController",
+            "pvlogging.BlacklistPvs": "#/$defs/pvlogging_BlacklistPvs",
+            "pvlogging.PvLogging": "#/$defs/pvlogging_PvLogging"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/devIocStats_iocAdminVxWorks"
+          },
+          {
+            "$ref": "#/$defs/devIocStats_iocAdminScanMon"
+          },
+          {
+            "$ref": "#/$defs/devIocStats_iocAdminSoft"
+          },
+          {
+            "$ref": "#/$defs/epics_EpicsCaMaxArrayBytes"
+          },
+          {
+            "$ref": "#/$defs/epics_EpicsTsMinWest"
+          },
+          {
+            "$ref": "#/$defs/epics_dbpf"
+          },
+          {
+            "$ref": "#/$defs/epics_EpicsEnvSet"
+          },
+          {
+            "$ref": "#/$defs/epics_StartupCommand"
+          },
+          {
+            "$ref": "#/$defs/epics_PostStartupCommand"
+          },
+          {
+            "$ref": "#/$defs/epics_PreBootCommandSet"
+          },
+          {
+            "$ref": "#/$defs/epics_InterruptVectorVME"
+          },
+          {
+            "$ref": "#/$defs/epics_DbLine"
+          },
+          {
+            "$ref": "#/$defs/epics_DbText"
+          },
+          {
+            "$ref": "#/$defs/epics_DbAlias"
+          },
+          {
+            "$ref": "#/$defs/motorSim_simMotorController"
+          },
+          {
+            "$ref": "#/$defs/motorSim_simMotorAxis"
+          },
+          {
+            "$ref": "#/$defs/motor_motorUtil"
+          },
+          {
+            "$ref": "#/$defs/motor_basic_asyn_motor"
+          },
+          {
+            "$ref": "#/$defs/motor_auto_asyn_auto_power"
+          },
+          {
+            "$ref": "#/$defs/motor_softMotorForPiezo"
+          },
+          {
+            "$ref": "#/$defs/motor_MotorSim"
+          },
+          {
+            "$ref": "#/$defs/motor_NewFocus"
+          },
+          {
+            "$ref": "#/$defs/pvlogging_BlacklistPvs"
+          },
+          {
+            "$ref": "#/$defs/pvlogging_PvLogging"
+          },
+          {
+            "$ref": "#/$defs/autosave_Autosave"
+          },
+          {
+            "$ref": "#/$defs/autosave_auto_save_restoreStatus"
+          },
+          {
+            "$ref": "#/$defs/asyn_AsynIP"
+          },
+          {
+            "$ref": "#/$defs/asyn_AsynIPServer"
+          },
+          {
+            "$ref": "#/$defs/asyn_Vxi11"
+          },
+          {
+            "$ref": "#/$defs/asyn_AsynSerial"
+          },
+          {
+            "$ref": "#/$defs/RepeatEntity"
+          },
+          {
+            "$ref": "#/$defs/Wait4IPEntity"
+          },
+          {
+            "$ref": "#/$defs/Wait4USBEntity"
+          }
+        ]
+      },
+      "title": "Entities",
+      "type": "array"
+    },
+    "shared": {
+      "default": [],
+      "description": "A place to create any anchors required for repeating YAML",
+      "items": {},
+      "title": "Shared",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ioc_name",
+    "description",
+    "entities"
+  ],
+  "title": "NewIOC",
+  "type": "object"
+}
