@@ -1,4 +1,4 @@
 # yaml-language-server: $schema=../../.helm-shared/values.schema.json
 
 ioc-instance:
-  image: ghcr.io/epics-containers/ioc-motorsim-developer:2025.11.1
+  image: ghcr.io/epics-containers/ioc-motorsim-developer:R1-3ec1
