@@ -8,6 +8,13 @@
 ioc-instance:
   image: REPLACE_WITH_IMAGE_URI
 
+  # startupProbe: waits for the IOC to serve Channel Access (UPTIME) before
+  # marking the pod Ready. Ships in generic images built from ioc-template
+  # after ioc-template#101 -- if your image predates that, remove this line
+  # (or set it to "") so the pod is not held Not Ready waiting on a script
+  # that does not exist.
+  startupExecutable: /epics/ioc/startup.sh
+
   # mount in the beamline data folder
   # dataVolume:
   #   enabled: true

@@ -7,7 +7,11 @@ type: application
 
 dependencies:
   - name: ioc-instance
+<<<<<<< before updating
     version: 5.13.0-beta.2
+=======
+    version: 5.13.0
+>>>>>>> after updating
     repository: "oci://ghcr.io/epics-containers/charts"
     import-values:
       - child: ioc-instance

@@ -10,6 +10,29 @@
 
 ROOT=$(realpath $(dirname ${0}))
 set -xe
+
+# Print a summary of every check when the script exits. set -e stops at the
+# first failing command, so a failure is always the last step recorded in STEP.
+RESULTS=()
+STEP="setup"
+summary() {
+    local rc=$?
+    { set +x; } 2>/dev/null
+    echo
+    echo "==================== ci_verify summary ===================="
+    echo "  scope: ${SCOPE:-not reached}"
+    local r
+    for r in "${RESULTS[@]}"; do echo "  ${r}"; done
+    if [[ ${rc} -ne 0 ]]; then
+        echo "  FAIL  ${STEP} (exit ${rc})"
+        echo "Stopped at the first failure: later checks did not run."
+    else
+        echo "All checks passed."
+    fi
+    echo "==========================================================="
+}
+trap summary EXIT
+
 rm -rf ${ROOT}/.ci_work/
 mkdir -p ${ROOT}/.ci_work
 
@@ -20,8 +43,8 @@ mkdir -p ${ROOT}/.ci_work
 
 cd ${ROOT}
 # techui-support is a submodule; initialise it for the synoptic checks.
-# (the old ibek-runtime-streamdevice submodule has been retired in favour of
-#  'ibek pattern' vendoring, so no submodule init is required for runtime support)
+# (runtime support is vendored per instance via 'ibek pattern', not a
+#  submodule, so no further submodule init is required for it)
 git submodule update --init
 
 # install uv only if it is missing: a local pip may be unable to install it
@@ -43,7 +66,9 @@ uv pip install -r requirements.txt
 uvx pre-commit install
 uvx ibek --version
 uvx techui-builder --version
+STEP="pre-commit"
 uvx pre-commit run --all-files --show-diff-on-failure
+RESULTS+=("PASS  pre-commit")
 
 # Verify vendored runtime-support integrity for every instance
 ################################################################################
@@ -67,16 +92,20 @@ for lock in ${ROOT}/services/*/runtime-lock.yaml; do
     checks=${ROOT}/.ci_skip_checks
     if [[ -f "${checks}" ]] && grep -Fxq -- "${instance_name}" "${checks}"; then
         echo "Skipping pattern check for ${instance_name}"
+        RESULTS+=("SKIP  pattern check ${instance_name}")
         continue
     fi
 
     echo "Checking vendored runtime-support for ${instance_name}"
+    STEP="pattern check ${instance_name}"
     ibek pattern check "services/${instance_name}"
+    RESULTS+=("PASS  pattern check ${instance_name}")
 done
 shopt -u nullglob
 
 # Verify the IOC instance definitions
 ################################################################################
+STEP="choose and prepare the services to check"
 # if a docker provider is specified, use it
 if [[ $DOCKER_PROVIDER ]]; then
     docker=$DOCKER_PROVIDER
@@ -121,10 +150,24 @@ esac
 if [[ -n "${REF}" ]] &&
     git fetch --quiet origin "${REF}" &&
     DIFF_BASE=$(git merge-base HEAD FETCH_HEAD); then
-    echo "Checking services changed since ${REF} (${DIFF_BASE})"
-    SERVICES=$(git diff --name-only "${DIFF_BASE}" HEAD -- services/ | cut -d/ -f2 | sort -u)
+    CHANGED=$(git diff --name-only "${DIFF_BASE}" HEAD)
+    # .helm-shared/ (the ioc-instance/ioc-group charts and values.schema.json
+    # every service's chart depends on) and services/values.yaml (the values
+    # every service's helm template/lint is rendered with) are not any one
+    # service's own files. A change to either can affect every service, so
+    # treat it the same as a manual full run.
+    if echo "${CHANGED}" | grep -qE '^(\.helm-shared/|services/values\.yaml$)'; then
+        echo "Shared file changed since ${REF} (${DIFF_BASE}): checking all services"
+        SCOPE="all services (shared file changed since ${REF} (${DIFF_BASE:0:8}))"
+        SERVICES=$(ls "${ROOT}/services")
+    else
+        echo "Checking services changed since ${REF} (${DIFF_BASE})"
+        SCOPE="services changed since ${REF} (${DIFF_BASE:0:8})"
+        SERVICES=$(echo "${CHANGED}" | grep '^services/' | cut -d/ -f2 | sort -u)
+    fi
 else
     echo "Checking all services"
+    SCOPE="all services"
     SERVICES=$(ls "${ROOT}/services")
 fi
 
@@ -150,10 +193,12 @@ do
     checks=${ROOT}/.ci_skip_checks
     if [[ -f "${checks}" ]] && grep -Fxq -- "${service_name}" "${checks}"; then
         echo "Skipping ${service_name}"
+        RESULTS+=("SKIP  ${service_name}")
         continue
     fi
 
     echo "Validating helm chart for ${service_name}"
+    STEP="helm chart ${service_name}"
     $docker run --rm --entrypoint bash \
         $selinux_opt \
         -v "${ROOT}/.ci_work:/services${vol_z}" \
@@ -167,6 +212,7 @@ do
              --values /services/$service_name/values.yaml &&
            rm -rf /services/$service_name/charts
         "
+    RESULTS+=("PASS  helm chart ${service_name}")
 
     ### Validate each ioc config ###
     # Skip if subfolder has no config to validate
@@ -178,10 +224,12 @@ do
     # ioc-instance.image at any depth, else the only image in the file), or
     # exits with an explanatory error if several images are found and none
     # can be picked out that way.
+    STEP="pick IOC image ${service_name}"
     image=$("${ROOT}/pick_ioc_image.py" "${service}/values.yaml")
 
     if [ -n "${image}" ]; then
         echo "Validating ${service} with ${image}"
+        STEP="IOC config ${service_name} (${image})"
 
         runtime=/tmp/ioc-runtime/$(basename ${service})
         mkdir -p ${runtime}
@@ -197,14 +245,14 @@ do
         # IP) fails fast instead of hanging the job. The timeout does not
         # include the image pull, and when it fires the container's main
         # process exits, so the container stops with it.
-        # The probe matches the '--test)' case arm that parses start.sh's
-        # arguments, not any other mention of --test.
+        # The probe looks for any mention of --test in start.sh, however
+        # start.sh parses its arguments.
         $docker run --rm --entrypoint bash \
             $selinux_opt \
             -v "${service}/config:/epics/ioc/config${vol_z}" \
             "${image}" \
             -c "
-            if grep -q -- '--test)' /epics/ioc/start.sh; then
+            if grep -q -- '--test' /epics/ioc/start.sh; then
                 timeout --kill-after=10s 60s /epics/ioc/start.sh --test
             else
                 echo 'start.sh has no --test support; falling back to ibek runtime generate2'
@@ -215,7 +263,9 @@ do
             fi &&
             cat /epics/runtime/st.cmd
             "
-
+        RESULTS+=("PASS  IOC config ${service_name}")
+    else
+        RESULTS+=("SKIP  IOC config ${service_name} (no IOC image in values.yaml)")
     fi
 done
 

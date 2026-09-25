@@ -1,7 +1,13 @@
 beamline:
+<<<<<<< before updating
   domain: t11
   location: bl11t
   desc: t11 simulation beamline
+=======
+  domain: "t11"
+  location: "bl11t"
+  desc: "T11 Beamline or Tech Area"
+>>>>>>> after updating
   # placeholder: the tech-ui pre-commit hook rewrites https://xxx-opis/ in
   # the generated screens to ../, so they carry no host name
   url: xxx-opis
