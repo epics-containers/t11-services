@@ -1,6 +1,7 @@
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   verify_ioc_instances:
@@ -14,5 +15,10 @@ jobs:
           fetch-depth: 0
 
       - name: run IOC checks
+        env:
+          # GitLab CI provides this variable; ci_verify.sh reads it on both
+          CI_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          # GitLab CI provides this variable natively; only a push event has it
+          CI_COMMIT_BEFORE_SHA: ${{ github.event.before }}
         run: |
           bash ci_verify.sh
