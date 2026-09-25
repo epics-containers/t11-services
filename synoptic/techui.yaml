@@ -1,6 +1,6 @@
 beamline:
-  short_dom: "T11"
-  long_dom: "BL11T"
+  domain: t11
+  location: bl11t
   desc: t11 simulation beamline
   # placeholder: the tech-ui pre-commit hook rewrites https://xxx-opis/ in
   # the generated screens to ../, so they carry no host name
