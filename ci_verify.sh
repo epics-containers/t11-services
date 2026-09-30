@@ -36,30 +36,6 @@ trap summary EXIT
 rm -rf ${ROOT}/.ci_work/
 mkdir -p ${ROOT}/.ci_work
 
-# Check every service's shared chart links resolve
-################################################################################
-# Most services link templates/ and Chart.yaml into .helm-shared/. A link to a
-# missing or empty folder renders a chart with no templates, or fails later
-# with a confusing error, so report every broken link up front. Git does not
-# keep empty folders, so a link that works in your checkout can still be broken
-# in CI's fresh clone.
-STEP="shared chart links"
-broken=()
-while IFS= read -r link; do
-    if [[ ! -e ${link} ]] || { [[ -d ${link} ]] && [[ -z $(ls -A "${link}/") ]]; }; then
-        broken+=("${link#${ROOT}/} -> $(readlink "${link}")")
-    fi
-done < <(find "${ROOT}/services" -mindepth 2 -maxdepth 2 -type l \( -name templates -o -name Chart.yaml \) | sort)
-if [[ ${#broken[@]} -gt 0 ]]; then
-    { set +x; } 2>/dev/null
-    echo "ERROR: these links point at a missing or empty target:" >&2
-    printf '  %s\n' "${broken[@]}" >&2
-    echo "If .helm-shared/ lost files in a template update, restore them from the" >&2
-    echo "commit before it: git checkout <commit> -- .helm-shared" >&2
-    exit 1
-fi
-RESULTS+=("PASS  shared chart links")
-
 # Perform pre-commit checks to ensure techui-builder has validated the synoptic
 # and that each instance's ioc.schema.json is up to date.
 ################################################################################
@@ -74,17 +50,23 @@ git submodule update --init
 # Choose the services to check
 ################################################################################
 # An explicit list of service names on the command line checks only those,
-# skipping the diff against the target branch entirely: used by
-# ci_verify_team.py and by anyone auditing a subset of services by hand.
+# skipping the diff against the target branch entirely: used by anyone
+# auditing a subset of services by hand, and on GitLab by ci_verify_team.py
+# for CODEOWNERS-based per-team verification. GitHub support for the same
+# per-team scoping is planned; until then a GitHub repo always runs the
+# diff/fallback logic below.
 #
 # With no arguments: a manually-run pipeline always checks every service, so
-# it can be used to sweep the whole repo on demand. A push to the default
-# branch checks only what that push changed, so a green run means that push
-# is good, not that every service still is. A branch or merge request checks
-# what has changed since the default branch or the MR/PR target. Anything
-# else -- outside CI, or a base commit that cannot be fetched (a new branch,
-# a force push) -- checks every service, since there is nothing to safely
-# diff against.
+# it can be used to sweep the whole repo on demand. On GitLab, a push to the
+# default branch checks only what that push changed, so a green run means
+# that push is good, not that every service still is -- this relies on
+# CI_DEFAULT_BRANCH, a GitLab-only predefined variable, so GitHub Actions
+# never takes this path (see the case statement below). A branch or merge
+# request/pull request checks what has changed since the default branch or
+# the MR/PR target. Anything else -- outside CI, a plain GitHub push (no
+# default-branch var to compare against), or a base commit that cannot be
+# fetched (a new branch, a force push) -- checks every service, since there
+# is nothing to safely diff against.
 STEP="choose the services to check"
 if [[ $# -gt 0 ]]; then
     for svc in "$@"; do
@@ -97,14 +79,19 @@ if [[ $# -gt 0 ]]; then
     SCOPE="explicit selection: $*"
     SERVICES="$*"
 else
+    # CI_MERGE_REQUEST_TARGET_BRANCH_NAME (GitLab MR target) and GITHUB_BASE_REF
+    # (GitHub PR target) are each set only on their own platform, so this picks
+    # up whichever CI produced the run. CI_DEFAULT_BRANCH is GitLab-only and has
+    # no GitHub Actions equivalent, which is what makes the default-branch-push
+    # arm below GitLab-specific.
     target=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-${GITHUB_BASE_REF:-${CI_DEFAULT_BRANCH:-}}}
     branch=${CI_COMMIT_BRANCH:-${GITHUB_REF_NAME:-}}
     default=${CI_DEFAULT_BRANCH:-}
     case ${CI_PIPELINE_SOURCE:-}${GITHUB_EVENT_NAME:-}/$branch/$default/$target in
         web*|*workflow_dispatch*)  REF= ;;                       # manual full run: no base to diff from
-        */"$default"/"$default"/*) REF=$CI_COMMIT_BEFORE_SHA ;;  # default branch push: diff from just before this push
-        */*/*/?*)                  REF=$target ;;                # branch or MR: diff from its target
-        *)                         REF= ;;                       # fallback: nothing to compare against
+        */"$default"/"$default"/*) REF=$CI_COMMIT_BEFORE_SHA ;;  # GitLab default-branch push: diff from just before this push
+        */*/*/?*)                  REF=$target ;;                # branch or MR/PR: diff from its target
+        *)                         REF= ;;                       # fallback (always taken by a GitHub push): nothing to compare against
     esac
 
     if [[ -n "${REF}" ]] &&
@@ -144,6 +131,35 @@ in_services() {
     return 1
 }
 
+# Check the chosen services' shared chart links resolve
+################################################################################
+# Most services link templates/ and Chart.yaml into .helm-shared/. A link to a
+# missing or empty folder renders a chart with no templates, or fails later
+# with a confusing error, so report every broken link up front. Git does not
+# keep empty folders, so a link that works in your checkout can still be broken
+# in CI's fresh clone.
+#
+# Scoped to the services chosen above (see "Choose the services to check"):
+# a targeted run must not fail over a broken link in an unrelated service.
+STEP="shared chart links"
+broken=()
+while IFS= read -r link; do
+    instance_name=$(basename "$(dirname "${link}")")
+    in_services "${instance_name}" || continue
+    if [[ ! -e ${link} ]] || { [[ -d ${link} ]] && [[ -z $(ls -A "${link}/") ]]; }; then
+        broken+=("${link#${ROOT}/} -> $(readlink "${link}")")
+    fi
+done < <(find "${ROOT}/services" -mindepth 2 -maxdepth 2 -type l \( -name templates -o -name Chart.yaml \) | sort)
+if [[ ${#broken[@]} -gt 0 ]]; then
+    { set +x; } 2>/dev/null
+    echo "ERROR: these links point at a missing or empty target:" >&2
+    printf '  %s\n' "${broken[@]}" >&2
+    echo "If .helm-shared/ lost files in a template update, restore them from the" >&2
+    echo "commit before it: git checkout <commit> -- .helm-shared" >&2
+    exit 1
+fi
+RESULTS+=("PASS  shared chart links")
+
 # install uv only if it is missing: a local pip may be unable to install it
 if ! command -v uv >/dev/null; then
     pip install uv || {
@@ -164,13 +180,14 @@ uvx pre-commit install
 uvx ibek --version
 uvx techui-builder --version
 STEP="pre-commit"
-# CI_VERIFY_TEAM_FILES (set by ci_verify_team.py, a newline-separated list of
-# every tracked file the calling team's CODEOWNERS section matches) scopes
-# pre-commit to just those files, so an unresolved problem in a file another
-# team owns does not fail this run. Set but empty means the team owns no
-# files, so there is nothing to check. Unset -- a plain ci_verify.sh call,
-# with or without an explicit service list -- runs pre-commit over the whole
-# repository.
+# CI_VERIFY_TEAM_FILES (set by ci_verify_team.py, GitLab-only -- GitHub
+# support for the same per-team scoping is planned -- a newline-separated
+# list of every tracked file the calling team's CODEOWNERS section matches)
+# scopes pre-commit to just those files, so an unresolved problem in a file
+# another team owns does not fail this run. Set but empty means the team owns
+# no files, so there is nothing to check. Unset -- a plain ci_verify.sh call,
+# with or without an explicit service list, on either platform -- runs
+# pre-commit over the whole repository.
 if [[ -n "${CI_VERIFY_TEAM_FILES+set}" ]]; then
     if [[ -z "${CI_VERIFY_TEAM_FILES}" ]]; then
         RESULTS+=("PASS  pre-commit (team-scoped: no files)")
