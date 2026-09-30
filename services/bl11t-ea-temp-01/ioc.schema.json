@@ -1625,16 +1625,16 @@
             "$ref": "#/$defs/epics_DbAlias"
           },
           {
-            "$ref": "#/$defs/autosave_Autosave"
-          },
-          {
-            "$ref": "#/$defs/autosave_auto_save_restoreStatus"
-          },
-          {
             "$ref": "#/$defs/pvlogging_BlacklistPvs"
           },
           {
             "$ref": "#/$defs/pvlogging_PvLogging"
+          },
+          {
+            "$ref": "#/$defs/autosave_Autosave"
+          },
+          {
+            "$ref": "#/$defs/autosave_auto_save_restoreStatus"
           },
           {
             "$ref": "#/$defs/asyn_AsynIP"
