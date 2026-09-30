@@ -36,6 +36,30 @@ trap summary EXIT
 rm -rf ${ROOT}/.ci_work/
 mkdir -p ${ROOT}/.ci_work
 
+# Check every service's shared chart links resolve
+################################################################################
+# Most services link templates/ and Chart.yaml into .helm-shared/. A link to a
+# missing or empty folder renders a chart with no templates, or fails later
+# with a confusing error, so report every broken link up front. Git does not
+# keep empty folders, so a link that works in your checkout can still be broken
+# in CI's fresh clone.
+STEP="shared chart links"
+broken=()
+while IFS= read -r link; do
+    if [[ ! -e ${link} ]] || { [[ -d ${link} ]] && [[ -z $(ls -A "${link}/") ]]; }; then
+        broken+=("${link#${ROOT}/} -> $(readlink "${link}")")
+    fi
+done < <(find "${ROOT}/services" -mindepth 2 -maxdepth 2 -type l \( -name templates -o -name Chart.yaml \) | sort)
+if [[ ${#broken[@]} -gt 0 ]]; then
+    { set +x; } 2>/dev/null
+    echo "ERROR: these links point at a missing or empty target:" >&2
+    printf '  %s\n' "${broken[@]}" >&2
+    echo "If .helm-shared/ lost files in a template update, restore them from the" >&2
+    echo "commit before it: git checkout <commit> -- .helm-shared" >&2
+    exit 1
+fi
+RESULTS+=("PASS  shared chart links")
+
 # Perform pre-commit checks to ensure techui-builder has validated the synoptic
 # and that each instance's ioc.schema.json is up to date.
 ################################################################################
@@ -46,6 +70,79 @@ cd ${ROOT}
 # (runtime support is vendored per instance via 'ibek pattern', not a
 #  submodule, so no further submodule init is required for it)
 git submodule update --init
+
+# Choose the services to check
+################################################################################
+# An explicit list of service names on the command line checks only those,
+# skipping the diff against the target branch entirely: used by
+# ci_verify_team.py and by anyone auditing a subset of services by hand.
+#
+# With no arguments: a manually-run pipeline always checks every service, so
+# it can be used to sweep the whole repo on demand. A push to the default
+# branch checks only what that push changed, so a green run means that push
+# is good, not that every service still is. A branch or merge request checks
+# what has changed since the default branch or the MR/PR target. Anything
+# else -- outside CI, or a base commit that cannot be fetched (a new branch,
+# a force push) -- checks every service, since there is nothing to safely
+# diff against.
+STEP="choose the services to check"
+if [[ $# -gt 0 ]]; then
+    for svc in "$@"; do
+        [[ -d "${ROOT}/services/${svc}" ]] || {
+            echo "ERROR: services/${svc} does not exist" >&2
+            exit 1
+        }
+    done
+    echo "Checking the services given on the command line: $*"
+    SCOPE="explicit selection: $*"
+    SERVICES="$*"
+else
+    target=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-${GITHUB_BASE_REF:-${CI_DEFAULT_BRANCH:-}}}
+    branch=${CI_COMMIT_BRANCH:-${GITHUB_REF_NAME:-}}
+    default=${CI_DEFAULT_BRANCH:-}
+    case ${CI_PIPELINE_SOURCE:-}${GITHUB_EVENT_NAME:-}/$branch/$default/$target in
+        web*|*workflow_dispatch*)  REF= ;;                       # manual full run: no base to diff from
+        */"$default"/"$default"/*) REF=$CI_COMMIT_BEFORE_SHA ;;  # default branch push: diff from just before this push
+        */*/*/?*)                  REF=$target ;;                # branch or MR: diff from its target
+        *)                         REF= ;;                       # fallback: nothing to compare against
+    esac
+
+    if [[ -n "${REF}" ]] &&
+        git fetch --quiet origin "${REF}" &&
+        DIFF_BASE=$(git merge-base HEAD FETCH_HEAD); then
+        CHANGED=$(git diff --name-only "${DIFF_BASE}" HEAD)
+        # .helm-shared/ (the ioc-instance/ioc-group charts and values.schema.json
+        # every service's chart depends on) and services/values.yaml (the values
+        # every service's helm template/lint is rendered with) are not any one
+        # service's own files. Neither are the files the template itself owns
+        # -- update-services-template.md's "Resolve the Template's Own Files"
+        # lists these; keep this pattern in step with that list -- since a
+        # template update changes what every service's checks mean (e.g. the
+        # ibek pin in requirements.txt, or ci_verify.sh's own checks). A
+        # change to any of these is treated the same as a manual full run.
+        SHARED_FILES='^(\.helm-shared/|services/values\.yaml$|ci_verify\.sh$|\.gitlab-ci\.yml$|\.pre-commit-config\.yaml$|requirements\.txt$|\.copier-answers\.yml$)'
+        if echo "${CHANGED}" | grep -qE "${SHARED_FILES}"; then
+            echo "Shared file changed since ${REF} (${DIFF_BASE}): checking all services"
+            SCOPE="all services (shared file changed since ${REF} (${DIFF_BASE:0:8}))"
+            SERVICES=$(ls "${ROOT}/services")
+        else
+            echo "Checking services changed since ${REF} (${DIFF_BASE})"
+            SCOPE="services changed since ${REF} (${DIFF_BASE:0:8})"
+            SERVICES=$(echo "${CHANGED}" | grep '^services/' | cut -d/ -f2 | sort -u)
+        fi
+    else
+        echo "Checking all services"
+        SCOPE="all services"
+        SERVICES=$(ls "${ROOT}/services")
+    fi
+fi
+
+# true if $1 is one of the chosen SERVICES (space/newline separated)
+in_services() {
+    local s
+    for s in ${SERVICES}; do [[ "${s}" == "$1" ]] && return 0; done
+    return 1
+}
 
 # install uv only if it is missing: a local pip may be unable to install it
 if ! command -v uv >/dev/null; then
@@ -67,8 +164,25 @@ uvx pre-commit install
 uvx ibek --version
 uvx techui-builder --version
 STEP="pre-commit"
-uvx pre-commit run --all-files --show-diff-on-failure
-RESULTS+=("PASS  pre-commit")
+# CI_VERIFY_TEAM_FILES (set by ci_verify_team.py, a newline-separated list of
+# every tracked file the calling team's CODEOWNERS section matches) scopes
+# pre-commit to just those files, so an unresolved problem in a file another
+# team owns does not fail this run. Set but empty means the team owns no
+# files, so there is nothing to check. Unset -- a plain ci_verify.sh call,
+# with or without an explicit service list -- runs pre-commit over the whole
+# repository.
+if [[ -n "${CI_VERIFY_TEAM_FILES+set}" ]]; then
+    if [[ -z "${CI_VERIFY_TEAM_FILES}" ]]; then
+        RESULTS+=("PASS  pre-commit (team-scoped: no files)")
+    else
+        readarray -t team_files <<<"${CI_VERIFY_TEAM_FILES}"
+        uvx pre-commit run --show-diff-on-failure --files "${team_files[@]}"
+        RESULTS+=("PASS  pre-commit (team-scoped)")
+    fi
+else
+    uvx pre-commit run --all-files --show-diff-on-failure
+    RESULTS+=("PASS  pre-commit")
+fi
 
 # Verify vendored runtime-support integrity for every instance
 ################################################################################
@@ -88,6 +202,9 @@ for lock in ${ROOT}/services/*/runtime-lock.yaml; do
     instance_dir=$(dirname "${lock}")
     instance_name=$(basename "${instance_dir}")
 
+    # restrict to the chosen services (see "Choose the services to check" above)
+    in_services "${instance_name}" || continue
+
     # honour .ci_skip_checks
     checks=${ROOT}/.ci_skip_checks
     if [[ -f "${checks}" ]] && grep -Fxq -- "${instance_name}" "${checks}"; then
@@ -105,7 +222,7 @@ shopt -u nullglob
 
 # Verify the IOC instance definitions
 ################################################################################
-STEP="choose and prepare the services to check"
+STEP="prepare the services to check"
 # if a docker provider is specified, use it
 if [[ $DOCKER_PROVIDER ]]; then
     docker=$DOCKER_PROVIDER
@@ -126,49 +243,6 @@ elif [[ $(basename "${docker}") != "kodman" ]]; then
 else
     vol_z=""
     selinux_opt=""
-fi
-
-# Choose the services to check
-################################################################################
-# A manually-run pipeline always checks every service, so it can be used to
-# sweep the whole repo on demand. A push to the default branch checks only
-# what that push changed, so a green run means that push is good, not that
-# every service still is. A branch or merge request checks what has changed
-# since the default branch or the MR/PR target. Anything else -- outside CI,
-# or a base commit that cannot be fetched (a new branch, a force push) --
-# checks every service, since there is nothing to safely diff against.
-target=${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-${GITHUB_BASE_REF:-${CI_DEFAULT_BRANCH:-}}}
-branch=${CI_COMMIT_BRANCH:-${GITHUB_REF_NAME:-}}
-default=${CI_DEFAULT_BRANCH:-}
-case ${CI_PIPELINE_SOURCE:-}${GITHUB_EVENT_NAME:-}/$branch/$default/$target in
-    web*|*workflow_dispatch*)  REF= ;;                       # manual full run: no base to diff from
-    */"$default"/"$default"/*) REF=$CI_COMMIT_BEFORE_SHA ;;  # default branch push: diff from just before this push
-    */*/*/?*)                  REF=$target ;;                # branch or MR: diff from its target
-    *)                         REF= ;;                       # fallback: nothing to compare against
-esac
-
-if [[ -n "${REF}" ]] &&
-    git fetch --quiet origin "${REF}" &&
-    DIFF_BASE=$(git merge-base HEAD FETCH_HEAD); then
-    CHANGED=$(git diff --name-only "${DIFF_BASE}" HEAD)
-    # .helm-shared/ (the ioc-instance/ioc-group charts and values.schema.json
-    # every service's chart depends on) and services/values.yaml (the values
-    # every service's helm template/lint is rendered with) are not any one
-    # service's own files. A change to either can affect every service, so
-    # treat it the same as a manual full run.
-    if echo "${CHANGED}" | grep -qE '^(\.helm-shared/|services/values\.yaml$)'; then
-        echo "Shared file changed since ${REF} (${DIFF_BASE}): checking all services"
-        SCOPE="all services (shared file changed since ${REF} (${DIFF_BASE:0:8}))"
-        SERVICES=$(ls "${ROOT}/services")
-    else
-        echo "Checking services changed since ${REF} (${DIFF_BASE})"
-        SCOPE="services changed since ${REF} (${DIFF_BASE:0:8})"
-        SERVICES=$(echo "${CHANGED}" | grep '^services/' | cut -d/ -f2 | sort -u)
-    fi
-else
-    echo "Checking all services"
-    SCOPE="all services"
-    SERVICES=$(ls "${ROOT}/services")
 fi
 
 # Need to make sure values.yaml is included in the ci
