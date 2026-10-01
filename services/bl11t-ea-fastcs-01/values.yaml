@@ -30,7 +30,7 @@ ioc-instance:
   # the same way p47's bl47p-ea-fastcs-01 does.
   extraContainers:
     - name: temp-controller-simulator
-      image: ghcr.io/diamondlightsource/fastcs-example:2025.9.1
+      image: ghcr.io/diamondlightsource/fastcs-example:2025.10.1
       command:
         - tickit
         - all
