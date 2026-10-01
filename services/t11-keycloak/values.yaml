@@ -19,7 +19,7 @@
 
 image:
   repository: quay.io/keycloak/keycloak
-  tag: "26.4"
+  tag: "26.8"
   pullPolicy: IfNotPresent
 
 # scripts/connect.sh in t11-deployment forwards this to localhost:8080.
