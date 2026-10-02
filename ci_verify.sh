@@ -51,10 +51,10 @@ git submodule update --init
 ################################################################################
 # An explicit list of service names on the command line checks only those,
 # skipping the diff against the target branch entirely: used by anyone
-# auditing a subset of services by hand, and on GitLab by ci_verify_team.py
-# for CODEOWNERS-based per-team verification. GitHub support for the same
-# per-team scoping is planned; until then a GitHub repo always runs the
-# diff/fallback logic below.
+# auditing a subset of services by hand, and by ci_verify_team.py for
+# CODEOWNERS-based per-team verification, on either platform. A CI pipeline
+# always calls this script with no arguments, so this only ever happens on
+# a manual, local run.
 #
 # With no arguments: a manually-run pipeline always checks every service, so
 # it can be used to sweep the whole repo on demand. On GitLab, a push to the
@@ -102,12 +102,13 @@ else
         # every service's chart depends on) and services/values.yaml (the values
         # every service's helm template/lint is rendered with) are not any one
         # service's own files. Neither are the files the template itself owns
-        # -- update-services-template.md's "Resolve the Template's Own Files"
-        # lists these; keep this pattern in step with that list -- since a
-        # template update changes what every service's checks mean (e.g. the
-        # ibek pin in requirements.txt, or ci_verify.sh's own checks). A
-        # change to any of these is treated the same as a manual full run.
-        SHARED_FILES='^(\.helm-shared/|services/values\.yaml$|ci_verify\.sh$|\.gitlab-ci\.yml$|\.pre-commit-config\.yaml$|requirements\.txt$|\.copier-answers\.yml$)'
+        # -- shutdown.md's "Resolve each team's files" section lists these as
+        # "The template's own files"; keep this pattern in step with that
+        # list -- since a template update changes what every service's checks
+        # mean (e.g. the ibek pin in requirements.txt, or ci_verify.sh's own
+        # checks). A change to any of these is treated the same as a manual
+        # full run.
+        SHARED_FILES='^(\.helm-shared/|services/values\.yaml$|ci_verify\.sh$|\.gitlab-ci\.yml$|\.github/workflows/|\.pre-commit-config\.yaml$|requirements\.txt$|\.copier-answers\.yml$)'
         if echo "${CHANGED}" | grep -qE "${SHARED_FILES}"; then
             echo "Shared file changed since ${REF} (${DIFF_BASE}): checking all services"
             SCOPE="all services (shared file changed since ${REF} (${DIFF_BASE:0:8}))"
@@ -180,8 +181,7 @@ uvx pre-commit install
 uvx ibek --version
 uvx techui-builder --version
 STEP="pre-commit"
-# CI_VERIFY_TEAM_FILES (set by ci_verify_team.py, GitLab-only -- GitHub
-# support for the same per-team scoping is planned -- a newline-separated
+# CI_VERIFY_TEAM_FILES (set by ci_verify_team.py -- a newline-separated
 # list of every tracked file the calling team's CODEOWNERS section matches)
 # scopes pre-commit to just those files, so an unresolved problem in a file
 # another team owns does not fail this run. Set but empty means the team owns

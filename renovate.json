@@ -18,13 +18,16 @@
     {
       "description": [
         "A new services-template-helm release is never opened as a branch/PR",
-        "unattended: it changes files in every team's folders (see the",
-        "customManagers entry below), so it is listed on the Dependency",
-        "Dashboard for someone to tick before Renovate acts on it -- the cue",
-        "to run a 'Update a Services Repository Template' template update."
+        "unattended: it changes files in every team's folders, so it is",
+        "listed on the Dependency Dashboard for someone to tick before",
+        "Renovate acts on it -- the cue to run a 'Update a Services",
+        "Repository Template' template update. Renovate's copier manager",
+        "then runs 'copier update' and commits the result, conflict markers",
+        "included. Its depName is the template URL from _src_path, so match",
+        "on the manager rather than the name."
       ],
-      "matchDepNames": [
-        "epics-containers/services-template-helm"
+      "matchManagers": [
+        "copier"
       ],
       "dependencyDashboardApproval": true
     },
@@ -72,22 +75,6 @@
       "matchStrings": [
         "version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?\\s*[\\r\\n]+[ \\t]*source:\\s*(?:https?://)?(?:github\\.com/)?(?<depName>[^@\\s\"']+/[^@\\s\"']+?)(?:@[^\\s\"']+)?\\s*$"
       ],
-      "datasourceTemplate": "github-releases"
-    },
-    {
-      "customType": "regex",
-      "description": [
-        "Track the copier template version pinned in .copier-answers.yml so",
-        "a new services-template-helm release appears on the Dependency",
-        "Dashboard (see the dependencyDashboardApproval packageRule above)."
-      ],
-      "managerFilePatterns": [
-        "/^\\.copier-answers\\.yml$/"
-      ],
-      "matchStrings": [
-        "_commit:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
-      ],
-      "depNameTemplate": "epics-containers/services-template-helm",
       "datasourceTemplate": "github-releases"
     }
   ]
