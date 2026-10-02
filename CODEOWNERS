@@ -1,0 +1,40 @@
+# Generated once by services-template-helm (copier _skip_if_exists): this
+# repo owns it after that -- 'copier update' never rewrites it again.
+#
+# GitHub has no sections: a path's owners are whoever the *last* matching
+# line in this file names, not every line that matches. The '# [Controls]',
+# '# [Data Acquisition]' and '# [Tech UI]' lines below are comments --
+# GitHub ignores them -- kept only so ci_verify_team.py and
+# update_checklist.sh can still read this file as one team's-paths map per
+# comment. A path matched by more than one team's glob (for example the
+# synoptic chart, matched by both the Controls IOC glob and Tech UI) needs
+# one explicit line naming every team that owns it, placed after the
+# broader globs so it is the line that wins. A path outside every glob
+# needs no code-owner approval: there is no '*' default-owner line. Owners
+# must be GitHub users or org teams with write access to this repository.
+#
+# Add each team's reviewers on its path lines, e.g.
+# '/services/bl11t-*/ @my-org/controls' -- not after the comment
+# heading, which GitHub ignores. A service that follows no naming
+# convention (e.g. a hand-added one-off) must be added under its team's
+# comment heading by hand, with owners on that new path line:
+# ci_verify_team.py <team> warns about any service claimed by no section.
+# ci_verify_team.py and update_checklist.sh read these comment headings to
+# work out which services a team owns, independently of whether owners are
+# set on them.
+
+# [Controls]
+/services/bl11t-*/
+/services/values.yaml
+/.helm-shared/
+/services/t11-epics-gateways/
+/services/t11-epics-opis/
+/services/t11-epics-pvcs/
+
+# [Tech UI]
+/services/bl11t-synoptic/
+/synoptic/
+# claimed by both Controls (the broader '/services/bl11t-*/' glob
+# above) and Tech UI: an explicit line after every broader glob, naming
+# both teams' owners, so this is the line that wins.
+/services/bl11t-synoptic/
