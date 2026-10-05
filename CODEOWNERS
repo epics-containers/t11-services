@@ -24,25 +24,25 @@
 # set on them.
 
 # [Controls]
-/services/bl11t-*/
-/services/values.yaml
-/.helm-shared/
-/services/t11-epics-gateways/
-/services/t11-epics-opis/
-/services/t11-epics-pvcs/
+/services/bl11t-*/ @gilesknap
+/services/values.yaml @gilesknap
+/.helm-shared/ @gilesknap
+/services/t11-epics-gateways/ @gilesknap
+/services/t11-epics-opis/ @gilesknap
+/services/t11-epics-pvcs/ @gilesknap
 
 # [Data Acquisition]
-/services/t11-blueapi/
-/services/t11-keycloak/
-/services/t11-numtracker/
-/services/t11-opa/
-/services/t11-rabbitmq/
-/services/t11-tiled/
+/services/t11-blueapi/ @gilesknap
+/services/t11-keycloak/ @gilesknap
+/services/t11-numtracker/ @gilesknap
+/services/t11-opa/ @gilesknap
+/services/t11-rabbitmq/ @gilesknap
+/services/t11-tiled/ @gilesknap
 
 # [Tech UI]
-/services/bl11t-synoptic/
-/synoptic/
+/services/bl11t-synoptic/ @gilesknap
+/synoptic/ @gilesknap
 # claimed by both Controls (the broader '/services/bl11t-*/' glob
 # above) and Tech UI: an explicit line after every broader glob, naming
 # both teams' owners, so this is the line that wins.
-/services/bl11t-synoptic/
+/services/bl11t-synoptic/ @gilesknap
