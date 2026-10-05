@@ -31,6 +31,14 @@
 /services/t11-epics-opis/
 /services/t11-epics-pvcs/
 
+# [Data Acquisition]
+/services/t11-blueapi/
+/services/t11-keycloak/
+/services/t11-numtracker/
+/services/t11-opa/
+/services/t11-rabbitmq/
+/services/t11-tiled/
+
 # [Tech UI]
 /services/bl11t-synoptic/
 /synoptic/
