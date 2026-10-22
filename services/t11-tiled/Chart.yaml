@@ -7,5 +7,5 @@ appVersion: 0.0.1b1
 
 dependencies:
   - name: tiled
-    version: "0.2.2"
+    version: "0.2.20"
     repository: "oci://ghcr.io/bluesky/charts"
